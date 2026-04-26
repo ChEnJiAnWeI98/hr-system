@@ -211,7 +211,9 @@
         showLoginSuccessNotice()
         // 使用硬刷新跳转(而非 router.push 软导航),
         // 确保所有 Pinia store 以登录态重新 hydrate,修复首次登录菜单不渲染的偶发问题
-        window.location.href = '/workspace'
+        // 注意:必须拼上 import.meta.env.BASE_URL,
+        // 否则在 GitHub Pages(子路径 /hr-system/)等部署会 404
+        window.location.href = `${import.meta.env.BASE_URL}workspace`
       } else {
         // 响应状态异常
         throw new Error(message || 'Login failed')
