@@ -48,5 +48,45 @@
         menuStore.setMenuList(menuTree)
       }
     }
+
+    // ⚡ 性能优化:浏览器空闲时预加载所有懒加载路由 chunk
+    // 目的:让后续菜单切换瞬间完成,避免跨境网络延迟造成的点击卡顿感
+    preloadAllRouteChunks()
   })
+
+  /**
+   * 预加载所有路由的组件 chunk
+   * 利用 requestIdleCallback 在浏览器空闲时段悄悄发起下载请求,
+   * 让 Vercel 海外服务器的文件提前进入浏览器缓存,
+   * 用户后续点菜单时直接从缓存读取,体感接近本地零延迟。
+   */
+  const preloadAllRouteChunks = (): void => {
+    const trigger = () => {
+      router.getRoutes().forEach((route) => {
+        const comp = route.components?.default
+        // 只对函数形式(动态 import)的组件预加载
+        if (typeof comp === 'function') {
+          // 调用函数触发 chunk 下载,静默捕获任何失败避免打扰用户
+          try {
+            const promise = (comp as () => Promise<unknown>)()
+            if (promise && typeof promise.catch === 'function') {
+              promise.catch(() => {})
+            }
+          } catch {
+            // 忽略任何同步错误
+          }
+        }
+      })
+    }
+
+    // 优先使用 requestIdleCallback(空闲时),降级用 setTimeout
+    const win = window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => void
+    }
+    if (typeof win.requestIdleCallback === 'function') {
+      win.requestIdleCallback(trigger, { timeout: 3000 })
+    } else {
+      setTimeout(trigger, 2000)
+    }
+  }
 </script>
