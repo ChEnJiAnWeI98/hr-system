@@ -367,10 +367,7 @@ const handleToggleStatus = async (row: ContractTemplate) => {
 
 // 版本管理
 const handleViewVersions = (row: ContractTemplate) => {
-  router.push({
-    path: '/contract/template/versions',
-    query: { id: row.id }
-  })
+  router.push(`/contract/template/versions/${row.id}`)
 }
 
 // 表格选择变化

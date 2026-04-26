@@ -1,5 +1,6 @@
 import type { LeaveQuota, LeaveQuotaListParams } from '@/types/leave'
 import { createCrudMock } from '@/utils/crud/mockHelper'
+import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
 
 // 初始数据
 const initialData: LeaveQuota[] = [
@@ -246,7 +247,7 @@ const initialData: LeaveQuota[] = [
 ]
 
 // 创建 CRUD Mock
-const leaveQuotaMock = createCrudMock<LeaveQuota>(initialData, {
+const leaveQuotaMock = createCrudMock<LeaveQuota>(alignEmployeeFields(initialData), {
   searchFields: ['employeeName', 'employeeCode']
 })
 

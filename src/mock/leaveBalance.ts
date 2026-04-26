@@ -1,6 +1,7 @@
 // @ts-nocheck
 import type { LeaveBalance } from '@/types/employeeSelfService'
 import { createCrudMock } from '@/utils/crud'
+import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
 
 // 初始数据 - 假期余额（年假、病假、事假、调休、婚假）
 const initialData: LeaveBalance[] = [
@@ -92,6 +93,6 @@ const initialData: LeaveBalance[] = [
 ]
 
 // 创建 CRUD Mock
-export const leaveBalanceMock = createCrudMock<LeaveBalance>(initialData, {
+export const leaveBalanceMock = createCrudMock<LeaveBalance>(alignEmployeeFields(initialData), {
   searchFields: ['employeeName', 'leaveTypeName']
 })

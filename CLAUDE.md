@@ -561,8 +561,64 @@ pnpm commit
 - 表头固定：给ElTable添加`height="100%"`属性
 - 表格容器：设置`flex: 1; overflow: hidden;`
 - 树形表格：使用`row-key="id"`和`:tree-props="{ children: 'children' }"`
-- 列宽建议：操作列200px，状态列100px，时间列180px
 - 表头不能滚动，数据滚动
+
+#### ⚠️ 表格列宽规则（已多次踩坑）
+
+**核心原则**：**表格必须铺满卡片，右侧不能留白**。每个表格都要有**至少 1~2 列**用 `min-width` 吃掉剩余空间。
+
+**列宽选择规则**：
+
+| 列类型 | 推荐 | 典型值 |
+|---|---|---|
+| 编号/员工号 | `width` | 110~140 |
+| 日期/时间 | `width` | 120~180 |
+| 状态/枚举 | `width` | 90~110 |
+| 固定金额（数字）| `width` | 100~140 |
+| 性别/年龄等简短字段 | `width` | 70~90 |
+| 操作列 | `width` + `fixed="right"` | 140~240 |
+| **姓名/标题/名称**（可能长） | **`min-width`** | 100~140 |
+| **组织/部门/岗位**（长文本）| **`min-width`** | 140~200 |
+| **描述/备注/原因**（长文本）| **`min-width`** | 180~280 |
+| **金额占位/可变内容** | **`min-width`** | 一般 1~2 列就够 |
+
+**必须设置**：
+- `<el-table ... style="width: 100%">` 让表格宽度跟容器
+- 至少 1~2 列用 `min-width`（让它们伸缩吃掉剩余空间）
+
+**检查口诀**：
+1. 把所有 `width` 数值加起来
+2. 如果**加起来 < 1200px**（常见屏幕表格容器宽度），就会留白
+3. 每张表格至少要有 1~2 列是 `min-width`（不设 width）
+
+**踩坑记录**：
+- Phase 2 员工花名册：所有列固定 width 导致留白 → 改 min-width
+- Phase 4 员工工资条 / 薪酬报表：重复犯同样问题
+- Phase 4.x Diff 审查 1on1 反馈表：只加 1 列 min-width，剩余空间被一列独吞 → 改"全 min-width + 固定操作列"
+
+写完一个表格后必做：全局 grep `width="[0-9]` 数一下固定宽度列数，如果超过 70% 列都固定宽度，多半会留白。
+
+---
+
+**⚠️ 子规则 · 当表格所有列都是"短内容"时**
+
+场景：表格的所有数据列都没有真正的长文本（姓名、编号、日期、状态、数字），只给 1 列 `min-width` 会导致**剩余空间全被它独吞**，出现"一列超宽 + 其他列挤在一起"的丑陋布局。
+
+**正确做法：全部列都用 `min-width`，只保留操作列 `width` 固定**
+
+```vue
+<el-table style="width: 100%">
+  <el-table-column label="编号" min-width="140" />       <!-- 伸缩 -->
+  <el-table-column label="姓名" min-width="80" />        <!-- 伸缩 -->
+  <el-table-column label="状态" min-width="100" />       <!-- 伸缩 -->
+  <el-table-column label="时间" min-width="170" />       <!-- 伸缩 -->
+  <el-table-column label="操作" width="180" fixed="right" />  <!-- 固定 -->
+</el-table>
+```
+
+**原理**：Element Plus 按 min-width 比例分配剩余空间。所有列都 min-width 时，剩余空间均摊，视觉上各列间距自然。
+
+**min-width 取值原则**：按这列"刚好能完整显示内容的最小宽度"设置，避免宽度不足时内容被截断。
 
 #### 按钮规范
 
@@ -837,6 +893,26 @@ const handleDragEnd = async () => {
 - 图标代码使用HTML实体格式（如`&#xe88a;`）
 - 在template中使用`v-html`渲染：`<i class="iconfont-sys" v-html="icon"></i>`
 - 图标字体大小一般设置为18px
+- **Element Plus 图标用前核对存在性**：不存在的图标名（如 `Magic` 实为 `MagicStick`）会导致动态 import 失败，报错表现为 "Failed to fetch dynamically imported module"。可疑时先 `grep` 或去 Element Plus 图标官网确认
+
+#### Vue 模板属性值引号规则（⚠️ 已多次踩坑）
+- **HTML 属性值用双引号 `"..."` 包裹时，值内部不能再出现半角双引号 `"`**，否则 Vue 编译器会在第一个内部 `"` 处截断属性，导致报错 "Element is missing end tag" 或 "Attribute name cannot contain U+0022"
+- 典型错误场景：中文文案里加"引号强调"
+  ```vue
+  <!-- ❌ 错误：属性值被截断 -->
+  <el-alert description="规则在"角色权限"页配置" />
+
+  <!-- ✅ 正确方案 1：用中文书名号 / 括号 -->
+  <el-alert description="规则在「角色权限」页配置" />
+
+  <!-- ✅ 正确方案 2：外单内双 -->
+  <el-alert description='规则在"角色权限"页配置' />
+
+  <!-- ✅ 正确方案 3：HTML 实体转义 -->
+  <el-alert description="规则在&quot;角色权限&quot;页配置" />
+  ```
+- **同理：属性值不能内嵌尖括号 `<` `>`**，需转义为 `&lt;` `&gt;`
+- 文案涉及引号强调时，**优先使用中文书名号「」或双引号""**（中文标点不会误伤 HTML 解析）
 
 ### API和Mock规范
 

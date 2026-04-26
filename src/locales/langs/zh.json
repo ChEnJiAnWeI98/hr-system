@@ -202,168 +202,39 @@
     "gohome": "返回首页"
   },
   "menus": {
-    "organization": {
-      "title": "组织管理",
-      "department": "部门管理",
-      "departmentCreate": "新增部门",
-      "departmentEdit": "编辑部门",
-      "position": "岗位管理",
-      "positionCreate": "新增岗位",
-      "positionEdit": "编辑岗位",
-      "staffing": "编制管理",
-      "staffingEdit": "编辑编制",
-      "orgChart": "组织架构图"
-    },
-    "employee": {
-      "title": "员工管理",
-      "profile": "员工档案",
-      "profileCreate": "新增员工",
-      "profileEdit": "编辑员工",
-      "profileDetail": "员工详情",
-      "onboarding": "入职管理",
-      "onboardingCreate": "发起入职",
-      "onboardingApprove": "审批入职",
-      "onboardingHandle": "办理入职",
-      "onboardingDetail": "入职详情",
-      "probation": "试用期管理",
-      "probationCreate": "新增试用期员工",
-      "probationEdit": "编辑试用期员工",
-      "probationEvaluate": "转正评估",
-      "probationExtend": "延长试用期",
-      "probationEvaluationDetail": "评估详情",
-      "probationExtensionDetail": "延长详情",
-      "resignation": "离职管理",
-      "resignationCreate": "发起离职",
-      "resignationApprove": "审批离职",
-      "resignationHandle": "办理离职",
-      "resignationDetail": "离职详情",
-      "transfer": "员工异动",
-      "transferCreate": "新增异动",
-      "transferEdit": "编辑异动",
-      "transferApprove": "审批异动",
-      "transferDetail": "异动详情",
-      "certificate": "证件到期提醒",
-      "certificateCreate": "新增证件",
-      "certificateEdit": "编辑证件",
-      "certificateDetail": "证件详情"
-    },
     "permissionTemplate": {
       "title": "权限管理",
       "role": "角色管理",
       "menu": "菜单管理"
     },
     "attendance": {
-      "title": "考勤管理",
+      "title": "考勤与假期",
       "rule": "考勤规则",
       "record": "打卡记录",
       "overtime": "加班申请",
       "fieldwork": "外勤记录",
       "makeup": "补卡申请",
-      "statistics": "考勤统计"
-    },
-    "leave": {
-      "title": "假勤管理",
-      "config": "假期配置",
-      "quota": "假期额度",
-      "application": "请假申请",
-      "timeOff": "调休管理",
-      "ledger": "假期台账"
-    },
-    "salary": {
-      "title": "薪酬管理",
-      "structure": "薪资结构配置",
-      "calculation": "薪酬计算",
-      "payslip": "工资条管理",
-      "tax": "个税申报",
-      "adjustment": "调薪管理"
-    },
-    "performance": {
-      "title": "绩效管理",
-      "cycle": "绩效周期",
-      "goal": "目标管理",
-      "evaluation": "绩效评估",
-      "calibration": "绩效校准",
-      "archive": "绩效档案"
-    },
-    "recruitment": {
-      "title": "招聘管理",
-      "demand": "招聘需求",
-      "job": "职位发布",
-      "resume": "简历管理",
-      "interview": "面试管理",
-      "offer": "Offer管理",
-      "onboarding": "入职衔接"
+      "statistics": "考勤统计",
+      "leaveConfig": "假期配置",
+      "leaveQuota": "假期额度",
+      "leaveApplication": "请假申请",
+      "leaveTimeOff": "调休管理",
+      "leaveLedger": "假期台账"
     },
     "training": {
       "title": "培训管理",
-      "plan": "培训计划",
       "course": "课程管理",
+      "plan": "培训计划",
       "record": "培训记录",
-      "evaluation": "培训评估"
+      "certificate": "证书管理"
     },
-    "socialSecurity": {
-      "title": "社保管理",
-      "insuranceConfig": "参保配置",
-      "employeeInsurance": "增减员管理",
-      "providentFund": "公积金管理",
-      "insuranceBill": "社保账单",
-      "declarationExport": "申报导出",
-      "paymentRecord": "缴纳记录",
-      "statistics": "数据统计"
-    },
-    "contract": {
-      "title": "合同管理",
-      "list": "合同列表",
-      "create": "新建合同",
-      "edit": "编辑合同",
-      "detail": "合同详情",
-      "approve": "审批合同",
-      "sign": "签订合同",
-      "renew": "续签合同",
-      "change": "变更合同",
-      "terminate": "终止合同",
-      "template": {
-        "title": "合同模板",
-        "list": "模板列表",
-        "create": "新建模板",
-        "edit": "编辑模板",
-        "detail": "模板详情",
-        "version": "版本管理"
-      },
-      "archive": {
-        "title": "合同归档",
-        "list": "归档列表"
-      },
-      "statistics": {
-        "title": "合同统计",
-        "list": "统计分析"
-      }
-    },
-    "employeeSelfService": {
-      "title": "员工自助",
-      "profile": "个人信息",
-      "payslip": "工资条查询",
-      "leaveBalance": "假期余额",
-      "application": "申请管理",
-      "todoTask": "待办任务"
-    },
-    "approvalEngine": {
-      "title": "审批流引擎",
-      "template": "流程模板",
-      "templateDesigner": "流程设计器",
-      "instance": "审批实例",
-      "instanceDetail": "实例详情",
-      "todo": "待办审批",
-      "delegate": "代理设置",
-      "statistics": "统计分析"
-    },
-    "dataReport": {
-      "title": "数据报表与分析",
-      "dashboard": "HR驾驶舱",
-      "personnel": "人员分析报表",
-      "salary": "薪酬分析报表",
-      "recruitment": "招聘漏斗报表",
-      "attendance": "考勤报表"
+    "talent": {
+      "title": "人才发展",
+      "review": "人才盘点",
+      "board": "盘点工作台",
+      "competency": "能力模型",
+      "assessment": "能力评估",
+      "succession": "继任计划"
     },
     "system": {
       "title": "系统管理",
@@ -375,9 +246,123 @@
       "roleEdit": "编辑角色",
       "rolePermission": "权限配置",
       "dictionary": "数据字典",
+      "dataPermission": "数据权限",
       "operationLog": "操作日志",
+      "fieldChangeLog": "字段变更日志",
       "notification": "消息通知配置",
-      "param": "系统参数设置"
+      "param": "系统参数设置",
+      "approvalTemplate": "审批模板",
+      "approvalDesigner": "流程设计器",
+      "approvalInstance": "审批实例",
+      "approvalInstanceDetail": "实例详情",
+      "approvalTodo": "待办审批",
+      "approvalDelegate": "审批委托",
+      "approvalStatistics": "审批统计"
+    },
+    "org": {
+      "title": "组织管理",
+      "organization": "组织架构",
+      "position": "岗位体系",
+      "headcount": "编制管理"
+    },
+    "employee": {
+      "title": "员工管理",
+      "profile": "员工档案",
+      "profileDetail": "员工详情",
+      "profileEdit": "编辑员工",
+      "transfer": "人员异动",
+      "offboarding": "离职管理",
+      "probation": "试用期管理",
+      "probationCreate": "新增试用期",
+      "probationEdit": "编辑试用期",
+      "probationEvaluate": "试用期考核",
+      "probationExtend": "延长试用期",
+      "probationEvaluationDetail": "考核详情",
+      "probationExtensionDetail": "延期详情"
+    },
+    "contract": {
+      "title": "合同管理",
+      "list": "合同列表",
+      "create": "新增合同",
+      "edit": "编辑合同",
+      "detail": "合同详情",
+      "approve": "合同审批",
+      "sign": "合同签署",
+      "renew": "合同续签",
+      "change": "合同变更",
+      "terminate": "合同终止",
+      "template": "合同模板",
+      "templateVersions": "版本历史",
+      "archive": "合同归档",
+      "statistics": "合同统计"
+    },
+    "recruit": {
+      "title": "招聘管理",
+      "demand": "招聘需求",
+      "demandPool": "需求池",
+      "demandCompletion": "完成率监控",
+      "job": "职位发布",
+      "resume": "简历池",
+      "resumeDetail": "候选人详情",
+      "aiMatching": "AI 智能匹配",
+      "interview": "面试管理",
+      "offer": "Offer 管理",
+      "onboarding": "入职办理",
+      "backgroundCheck": "背调管理",
+      "automation": "自动化规则",
+      "budget": "招聘预算",
+      "talentPool": "人才库",
+      "referralRule": "内推规则",
+      "nps": "候选人体验",
+      "analytics": "招聘运营分析",
+      "config": "招聘配置",
+      "integrations": "外部集成"
+    },
+    "comp": {
+      "title": "薪酬管理",
+      "structure": "薪酬体系",
+      "payroll": "薪资核算",
+      "payslip": "员工工资条",
+      "tax": "个税管理",
+      "adjustment": "调薪管理",
+      "welfare": "福利管理",
+      "report": "薪酬报表"
+    },
+    "social": {
+      "title": "社保公积金",
+      "insuranceConfig": "社保方案",
+      "providentFund": "公积金方案",
+      "employee": "员工参保",
+      "monthly": "月度计算",
+      "statistics": "社保统计"
+    },
+    "perf": {
+      "title": "绩效管理",
+      "cycle": "绩效周期",
+      "goal": "目标管理",
+      "goalAlignment": "目标对齐",
+      "evaluation": "绩效评估",
+      "review360": "360 度评估",
+      "calibration": "绩效校准",
+      "meeting": "绩效面谈",
+      "archive": "绩效档案",
+      "oneOnOne": "1on1 反馈",
+      "badges": "徽章认可",
+      "pip": "PIP 改进",
+      "appeal": "绩效申诉",
+      "template": "评估模板",
+      "applyRules": "结果应用",
+      "tasks": "绩效任务"
+    },
+    "insight": {
+      "title": "数据洞察",
+      "dashboard": "HR 驾驶舱",
+      "organization": "组织洞察",
+      "recruitment": "招聘洞察",
+      "performance": "绩效洞察",
+      "compensation": "薪酬洞察",
+      "attendance": "考勤洞察",
+      "ai": "AI 辅助中心"
     },
     "workspace": {
       "title": "工作台",

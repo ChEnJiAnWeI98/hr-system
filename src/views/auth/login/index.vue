@@ -62,13 +62,16 @@
       </div>
     </div>
 
-    <p class="copyright">© 2026 产品经理WEB端AI原型框架 All Rights Reserved</p>
+    <p class="copyright">© 2026 人力资源系统 All Rights Reserved</p>
   </div>
 </template>
 
 <script setup lang="ts">
   import AppConfig from '@/config'
   import { useUserStore } from '@/store/modules/user'
+  import { useRBACStore } from '@/store/modules/rbac'
+  import { useEmployeeStore } from '@/store/modules/employee'
+  import { RBAC_ACCOUNT_MAP } from '@/mock/auth'
   import { useI18n } from 'vue-i18n'
   import { HttpError } from '@/utils/http/error'
   import { fetchLogin } from '@/api/auth'
@@ -86,7 +89,59 @@
   })
 
   const userStore = useUserStore()
+  const rbacStore = useRBACStore()
+  const empStore = useEmployeeStore()
   const router = useRouter()
+
+  /**
+   * 根据账号映射表找到对应员工池里的测试员工
+   * 返回 employeeId（可能为 null，即超管不绑定）
+   */
+  const findEmployeeByFinder = (finder: string): number | null => {
+    const all = empStore.employees
+    switch (finder) {
+      case 'none':
+        return null
+      case 'hr_lead':
+        return (
+          all.find((e) => e.orgId === 9 && e.level === 'P8')?.id ||
+          all.find((e) => e.orgId === 9)?.id ||
+          null
+        )
+      case 'hrbp_with_managed_orgs':
+        return all.find((e) => e.managedOrgIds && e.managedOrgIds.length > 0)?.id || null
+      case 'dept_manager_tech':
+        return (
+          all.find((e) => e.orgId === 6 && e.jobFamily === 'MGMT')?.id ||
+          all.find((e) => e.orgId === 6)?.id ||
+          null
+        )
+      case 'line_manager_with_subs': {
+        const candidate = all.find(
+          (e) => e.orgId === 10 && empStore.getSubordinates(e.id).length > 0
+        )
+        if (candidate) return candidate.id
+        return all.find((e) => empStore.getSubordinates(e.id).length > 0)?.id || null
+      }
+      case 'regular_employee':
+        return (
+          all.find(
+            (e) =>
+              e.orgId === 10 &&
+              e.status === 'regular' &&
+              empStore.getSubordinates(e.id).length === 0
+          )?.id ||
+          all.find(
+            (e) => e.status === 'regular' && empStore.getSubordinates(e.id).length === 0
+          )?.id ||
+          null
+        )
+      case 'any_interviewer':
+        return all[0]?.id || null
+      default:
+        return null
+    }
+  }
 
   const systemName = AppConfig.systemInfo.name
   const formRef = ref<FormInstance>()
@@ -141,6 +196,16 @@
         userStore.setToken(token, refreshToken)
         userStore.setUserInfo(user)
         userStore.setLoginStatus(true)
+
+        // 🔐 V2.0 RBAC：联动设置当前登录角色 + 绑定员工 ID
+        const rbacMap = RBAC_ACCOUNT_MAP[username]
+        if (rbacMap) {
+          const empId = findEmployeeByFinder(rbacMap.employeeFinder)
+          rbacStore.setLoginIdentity(rbacMap.rbacRoleCode, empId)
+        } else {
+          // 未映射的账号默认降级为普通员工视图
+          rbacStore.setLoginIdentity('employee', null)
+        }
 
         // 登录成功处理
         showLoginSuccessNotice()

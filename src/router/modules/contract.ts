@@ -1,23 +1,27 @@
 import type { AppRouteRecord } from '@/types/router'
 
+/**
+ * 03 合同管理（从原 hrm 拆分）
+ * 包含：合同列表 / 合同模板 / 合同归档 / 合同统计
+ */
 export const contractRoutes: AppRouteRecord = {
   path: '/contract',
   name: 'Contract',
   component: () => import('@/views/index/index.vue'),
   meta: {
     title: 'menus.contract.title',
-    icon: '&#xe7ae;',
+    icon: '&#xe6f5;',
     isFirstLevel: true
   },
   children: [
-    // 合同列表（二级菜单）
     {
       path: 'list',
       name: 'ContractList',
       component: () => import('@/views/contract/list/index.vue'),
       meta: {
         title: 'menus.contract.list',
-        keepAlive: true
+        keepAlive: true,
+        menuCode: 'contract:list'
       }
     },
     {
@@ -108,47 +112,14 @@ export const contractRoutes: AppRouteRecord = {
         activePath: '/contract/list'
       }
     },
-    // 合同模板（二级菜单）
     {
       path: 'template',
       name: 'ContractTemplate',
       component: () => import('@/views/contract/template/index.vue'),
       meta: {
-        title: 'menus.contract.template.title',
-        keepAlive: true
-      }
-    },
-    {
-      path: 'template/create/new',
-      name: 'ContractTemplateCreate',
-      component: () => import('@/views/contract/template/create.vue'),
-      meta: {
-        title: 'menus.contract.template.create',
-        keepAlive: false,
-        isHide: true,
-        activePath: '/contract/template'
-      }
-    },
-    {
-      path: 'template/edit/:id',
-      name: 'ContractTemplateEdit',
-      component: () => import('@/views/contract/template/create.vue'),
-      meta: {
-        title: 'menus.contract.template.edit',
-        keepAlive: false,
-        isHide: true,
-        activePath: '/contract/template'
-      }
-    },
-    {
-      path: 'template/detail/:id',
-      name: 'ContractTemplateDetail',
-      component: () => import('@/views/contract/template/detail.vue'),
-      meta: {
-        title: 'menus.contract.template.detail',
-        keepAlive: false,
-        isHide: true,
-        activePath: '/contract/template'
+        title: 'menus.contract.template',
+        keepAlive: true,
+        menuCode: 'contract:template'
       }
     },
     {
@@ -156,30 +127,30 @@ export const contractRoutes: AppRouteRecord = {
       name: 'ContractTemplateVersions',
       component: () => import('@/views/contract/template/versions.vue'),
       meta: {
-        title: 'menus.contract.template.version',
+        title: 'menus.contract.templateVersions',
         keepAlive: false,
         isHide: true,
         activePath: '/contract/template'
       }
     },
-    // 合同归档（二级菜单）
     {
       path: 'archive',
       name: 'ContractArchive',
       component: () => import('@/views/contract/archive/index.vue'),
       meta: {
-        title: 'menus.contract.archive.title',
-        keepAlive: true
+        title: 'menus.contract.archive',
+        keepAlive: true,
+        menuCode: 'contract:archive'
       }
     },
-    // 合同统计（二级菜单）
     {
       path: 'statistics',
       name: 'ContractStatistics',
       component: () => import('@/views/contract/statistics/index.vue'),
       meta: {
-        title: 'menus.contract.statistics.title',
-        keepAlive: true
+        title: 'menus.contract.statistics',
+        keepAlive: true,
+        menuCode: 'contract:statistics'
       }
     }
   ]

@@ -35,12 +35,12 @@
                     v-model="probationQuery.status"
                     placeholder="请选择状态"
                     clearable
-                    style="width: 120px"
+                    style="width: 140px"
                   >
-                    <el-option label="试用中" :value="0" />
-                    <el-option label="已转正" :value="1" />
-                    <el-option label="延长试用" :value="2" />
-                    <el-option label="不合格" :value="3" />
+                    <el-option label="试用期" value="trial" />
+                    <el-option label="延长试用期" value="extended" />
+                    <el-option label="转正" value="passed" />
+                    <el-option label="试用未通过" value="failed" />
                   </el-select>
                 </el-form-item>
 
@@ -75,13 +75,6 @@
             <template #header>
               <div class="table-header">
                 <div class="header-buttons">
-                  <el-button type="primary" @click="handleCreate">
-                    <el-icon><Plus /></el-icon>
-                    新增
-                  </el-button>
-                  <el-button type="danger" @click="handleBatchDelete">
-                    批量删除
-                  </el-button>
                   <el-button @click="handleExport">
                     导出
                   </el-button>
@@ -95,9 +88,7 @@
                 :data="probationList"
                 height="100%"
                 style="width: 100%"
-                @selection-change="handleSelectionChange"
               >
-                <el-table-column type="selection" min-width="5%" />
                 <el-table-column prop="employeeCode" label="员工工号" min-width="9%" />
                 <el-table-column prop="employeeName" label="员工姓名" min-width="9%" />
                 <el-table-column prop="departmentName" label="所属部门" min-width="11%" />
@@ -105,27 +96,33 @@
                 <el-table-column prop="entryDate" label="入职日期" min-width="9%" />
                 <el-table-column prop="regularDate" label="转正日期" min-width="9%" />
                 <el-table-column prop="probationMonths" label="试用期月数" min-width="9%" />
-                <el-table-column label="状态" min-width="8%">
+                <el-table-column label="状态" min-width="10%">
                   <template #default="{ row }">
-                    <el-tag v-if="row.status === 0" type="primary">试用中</el-tag>
-                    <el-tag v-else-if="row.status === 1" type="success">已转正</el-tag>
-                    <el-tag v-else-if="row.status === 2" type="warning">延长试用</el-tag>
-                    <el-tag v-else-if="row.status === 3" type="danger">不合格</el-tag>
+                    <el-tag :type="PROBATION_STATUS_TYPE[row.status as ProbationStatus]" size="small">
+                      {{ PROBATION_STATUS_LABEL[row.status as ProbationStatus] }}
+                    </el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column label="操作" min-width="19%" fixed="right">
+                <el-table-column label="操作" min-width="22%" fixed="right">
                   <template #default="{ row }">
-                    <el-button link @click="handleEdit(row)">
-                      编辑
-                    </el-button>
-                    <el-button link type="danger" @click="handleDelete(row)">
-                      删除
-                    </el-button>
-                    <el-button link type="primary" @click="handleEvaluate(row)">
+                    <!-- trial / extended：编辑 / 转正评估 -->
+                    <el-button v-if="row.status === 'trial' || row.status === 'extended'" link type="primary" @click="handleEvaluate(row)">
                       转正评估
                     </el-button>
-                    <el-button link type="warning" @click="handleExtend(row)">
+                    <!-- 只有 trial 允许延长，extended 不允许二次延长 -->
+                    <el-button v-if="row.status === 'trial'" link type="warning" @click="handleExtend(row)">
                       延长试用期
+                    </el-button>
+                    <el-button v-if="row.status === 'trial' || row.status === 'extended'" link @click="handleEdit(row)">
+                      编辑
+                    </el-button>
+                    <!-- passed / failed 终态：只能查看 -->
+                    <el-button v-if="row.status === 'passed' || row.status === 'failed'" link type="primary" @click="handleEvaluate(row)">
+                      查看详情
+                    </el-button>
+                    <!-- failed：跳转离职流程 -->
+                    <el-button v-if="row.status === 'failed'" link type="danger" @click="handleGoOffboarding(row)">
+                      离职流程
                     </el-button>
                   </template>
                 </el-table-column>
@@ -365,9 +362,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
-import { getProbationList, deleteProbation } from '@/api/probation'
+import { getProbationList } from '@/api/probation'
 import { getDepartmentTree } from '@/api/department'
+import {
+  PROBATION_STATUS_LABEL,
+  PROBATION_STATUS_TYPE
+} from '@/types/probation'
+import type { ProbationStatus } from '@/types/probation'
 
 defineOptions({
   name: 'EmployeeProbation'
@@ -383,9 +384,6 @@ const activeTab = ref('probation')
 
 // 部门树数据
 const departmentTree = ref<any[]>([])
-
-// 选中的行
-const selectedRows = ref<any[]>([])
 
 // 加载部门树
 const loadDepartmentTree = async () => {
@@ -494,64 +492,16 @@ const handleProbationReset = () => {
   handleProbationSearch()
 }
 
-const handleCreate = () => {
-  router.push('/employee/probation/create/new')
-}
-
 const handleEdit = (row: any) => {
   router.push(`/employee/probation/edit/${row.id}`)
 }
 
-const handleDelete = async (row: any) => {
-  try {
-    await ElMessageBox.confirm('确定要删除该试用期员工吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-
-    const res = await deleteProbation(row.id)
-    if (res.code === 200) {
-      ElMessage.success('删除成功')
-      handleProbationSearch()
-    }
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '删除失败')
-    }
-  }
+/** 试用未通过：跳转到离职管理发起离职流程 */
+const handleGoOffboarding = (row: any) => {
+  ElMessage.info(`跳转到离职管理流程，发起 ${row.employeeName}（${row.employeeCode}）的试用未通过离职手续`)
+  router.push('/employee/offboarding')
 }
 
-const handleSelectionChange = (rows: any[]) => {
-  selectedRows.value = rows
-}
-
-const handleBatchDelete = async () => {
-  if (selectedRows.value.length === 0) {
-    ElMessage.warning('请选择要删除的数据')
-    return
-  }
-
-  try {
-    await ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 条数据吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-
-    for (const row of selectedRows.value) {
-      await deleteProbation((row as any).id)
-    }
-
-    ElMessage.success('批量删除成功')
-    selectedRows.value = []
-    handleProbationSearch()
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error('批量删除失败')
-    }
-  }
-}
 
 const handleExport = () => {
   ElMessage.success('导出成功')

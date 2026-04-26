@@ -312,3 +312,85 @@ export function batchImportOnboarding(data: Partial<OnboardingApplication>[]) {
 export function batchDeleteOnboarding(ids: number[]) {
   return Promise.all(ids.map(id => deleteOnboarding(id)))
 }
+
+// ============ Phase 2.4 新增 API ============
+
+import {
+  sendFillLinkMock,
+  simulateCandidateFillMock,
+  updateMultiDeptTasksMock,
+  triggerNoShowAlertMock,
+  archiveNoShowMock
+} from '@/mock/onboarding'
+
+function onboardingMockResolve<T>(fn: () => T, successMsg = '操作成功') {
+  return new Promise<any>((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        const data = fn()
+        resolve({ code: 200, message: successMsg, data })
+      } catch (error: any) {
+        reject({ code: 500, message: error.message || '操作失败' })
+      }
+    }, 300)
+  })
+}
+
+/**
+ * 发送 Pre-onboarding 填报链接
+ */
+export function sendFillLink(id: number, templateId: number, templateName: string) {
+  if (USE_MOCK) {
+    return onboardingMockResolve(() => sendFillLinkMock(id, templateId, templateName), '填报链接已生成')
+  }
+  return request.post({
+    url: `/admin/onboarding/${id}/send-fill-link`,
+    data: { templateId, templateName }
+  })
+}
+
+/**
+ * 模拟候选人填报（Mock 演示用）
+ */
+export function simulateCandidateFill(id: number, progress: number) {
+  if (USE_MOCK) {
+    return onboardingMockResolve(() => simulateCandidateFillMock(id, progress), '模拟成功')
+  }
+  return request.post({
+    url: `/admin/onboarding/${id}/simulate-fill`,
+    data: { progress }
+  })
+}
+
+/**
+ * 更新多部门任务
+ */
+export function updateMultiDeptTasks(id: number, tasksJson: string) {
+  if (USE_MOCK) {
+    return onboardingMockResolve(() => updateMultiDeptTasksMock(id, tasksJson), '任务已更新')
+  }
+  return request.put({
+    url: `/admin/onboarding/${id}/multi-dept-tasks`,
+    data: { tasksJson }
+  })
+}
+
+/**
+ * 触发鸽子预警
+ */
+export function triggerNoShowAlert(id: number) {
+  if (USE_MOCK) {
+    return onboardingMockResolve(() => triggerNoShowAlertMock(id), '已触发预警')
+  }
+  return request.post({ url: `/admin/onboarding/${id}/no-show-alert` })
+}
+
+/**
+ * 爽约归档
+ */
+export function archiveNoShow(id: number, reasonText: string) {
+  if (USE_MOCK) {
+    return onboardingMockResolve(() => archiveNoShowMock(id, reasonText), '已归档')
+  }
+  return request.post({ url: `/admin/onboarding/${id}/archive-no-show`, data: { reasonText } })
+}

@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { LanguageEnum } from '@/enums/appEnum'
 import { router } from '@/router'
 import { useSettingStore } from './setting'
+import { useRBACStore } from './rbac'
 import { useWorktabStore } from './worktab'
 import { AppRouteRecord } from '@/types/router'
 import { setPageTitle } from '@/router/utils/utils'
@@ -39,6 +40,44 @@ export const useUserStore = defineStore(
     const getSettingState = computed(() => useSettingStore().$state)
     // 计算属性：获取工作台状态
     const getWorktabState = computed(() => useWorktabStore().$state)
+    // 计算属性：用户角色代码数组（V1.0 风格）
+    const roleCodes = computed(() => (info.value.roles || []).map((r) => r.code))
+
+    /** 读取 V2.0 RBAC 当前角色 code（Pinia useXxxStore 懒加载，无循环依赖问题） */
+    const v2RoleCode = () => {
+      try {
+        const rbacStore = useRBACStore()
+        return rbacStore.currentRoleCode as string
+      } catch {
+        return ''
+      }
+    }
+
+    // 计算属性：超级管理员（兼容 V1.0 R_SUPER + V2.0 super_admin）
+    const isSuperAdmin = computed(
+      () => roleCodes.value.includes('R_SUPER') || v2RoleCode() === 'super_admin'
+    )
+    // 计算属性：HR 管理员（兼容 V1.0 R_HR + V2.0 super_admin/hr_admin/hr_bp）
+    const isHR = computed(() => {
+      if (roleCodes.value.includes('R_HR')) return true
+      const v2 = v2RoleCode()
+      return v2 === 'super_admin' || v2 === 'hr_admin' || v2 === 'hr_bp'
+    })
+    // 计算属性：部门负责人（兼容 V1.0 R_DEPT_MANAGER + V2.0 dept_manager/line_manager）
+    const isDeptManager = computed(() => {
+      if (roleCodes.value.includes('R_DEPT_MANAGER')) return true
+      const v2 = v2RoleCode()
+      return v2 === 'dept_manager' || v2 === 'line_manager'
+    })
+
+    /**
+     * 判断当前用户是否拥有指定角色（支持字符串或数组）
+     * 注意：R_SUPER 不再自动继承其他角色，如需业务权限必须通过多角色组合显式授予
+     */
+    const hasRole = (role: string | string[]): boolean => {
+      const required = Array.isArray(role) ? role : [role]
+      return required.some((r) => roleCodes.value.includes(r))
+    }
 
     /**
      * 设置用户信息
@@ -124,6 +163,8 @@ export const useUserStore = defineStore(
       sessionStorage.removeItem('iframeRoutes')
       // 清空主页路径
       useMenuStore().setHomePath('')
+      // 🔐 清空 RBAC 状态（重登陆时会重新设置）
+      useRBACStore().setLoginIdentity('super_admin', null)
       // 重置路由状态
       resetRouterState()
       // 跳转到登录页
@@ -142,6 +183,11 @@ export const useUserStore = defineStore(
       getUserInfo,
       getSettingState,
       getWorktabState,
+      roleCodes,
+      isSuperAdmin,
+      isHR,
+      isDeptManager,
+      hasRole,
       setUserInfo,
       setLoginStatus,
       setLanguage,

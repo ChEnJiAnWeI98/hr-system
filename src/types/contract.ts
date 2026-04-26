@@ -463,6 +463,8 @@ export interface ContractStatistics {
 export interface ExpiringContract {
   /** 合同ID */
   id: number
+  /** 合同编号 */
+  contractNo: string
   /** 员工姓名 */
   employeeName: string
   /** 工号 */

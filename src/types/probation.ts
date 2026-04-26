@@ -1,6 +1,37 @@
 /**
- * 试用期管理类型定义
+ * 试用期管理类型定义（Phase 4.x 对齐市面主流术语重构）
+ *
+ * 状态术语对照（对齐北森/Workday/SAP 主流做法）：
+ *   trial    = 试用期（入职默认）
+ *   extended = 延长试用期（考核未通过但决定给机会）
+ *   passed   = 转正（考核通过，员工档案状态变为 regular）
+ *   failed   = 试用未通过（终态，触发离职流程）
  */
+
+/** 试用期状态（字符串枚举） */
+export type ProbationStatus = 'trial' | 'extended' | 'passed' | 'failed'
+
+/** 状态中文 Label */
+export const PROBATION_STATUS_LABEL: Record<ProbationStatus, string> = {
+  trial: '试用期',
+  extended: '延长试用期',
+  passed: '转正',
+  failed: '试用未通过'
+}
+
+/** 状态标签颜色 */
+export const PROBATION_STATUS_TYPE: Record<
+  ProbationStatus,
+  'primary' | 'warning' | 'success' | 'danger' | 'info'
+> = {
+  trial: 'primary',
+  extended: 'warning',
+  passed: 'success',
+  failed: 'danger'
+}
+
+/** 转正评估结果 */
+export type EvaluationResult = 'passed' | 'extended' | 'failed'
 
 /**
  * 试用期记录
@@ -26,12 +57,10 @@ export interface Probation {
   entryDate: string
   /** 试用期时长（月） */
   probationMonths: number
-  /** 转正日期 */
+  /** 转正日期（预计或实际） */
   regularDate: string
-  /** 试用期状态：0-试用中，1-已转正，2-延长试用，3-不合格 */
-  status: number
-  /** 试用期状态名称 */
-  statusName: string
+  /** 试用期状态 */
+  status: ProbationStatus
   /** 工作能力评分 */
   workAbilityScore?: number
   /** 工作态度评分 */
@@ -52,7 +81,7 @@ export interface Probation {
   extensionMonths?: number
   /** 延长原因 */
   extensionReason?: string
-  /** 不合格原因 */
+  /** 试用未通过原因 */
   failureReason?: string
   /** 备注 */
   remark?: string
@@ -73,7 +102,7 @@ export interface ProbationListParams {
   /** 部门ID */
   departmentId?: number | string | null
   /** 试用期状态 */
-  status?: number | string | null
+  status?: ProbationStatus | ''
   /** 转正日期开始 */
   regularDateStart?: string
   /** 转正日期结束 */
@@ -110,12 +139,12 @@ export interface RegularizationForm {
   evaluationScore: number
   /** 评估意见 */
   evaluationComment: string
-  /** 是否通过：1-通过，2-延长试用，3-不合格 */
-  result: number
+  /** 评估结果：passed=转正 / extended=延长试用期 / failed=试用未通过 */
+  result: EvaluationResult
   /** 延长试用期时长（月） */
   extensionMonths?: number
   /** 延长原因 */
   extensionReason?: string
-  /** 不合格原因 */
+  /** 试用未通过原因 */
   failureReason?: string
 }

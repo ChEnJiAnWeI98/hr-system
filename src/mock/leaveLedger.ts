@@ -8,9 +8,10 @@ import type {
   LeaveUsageRecord,
   LeaveAdjustRecord
 } from '@/types/leave'
+import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
 
 // 初始数据
-const initialData: LeaveLedger[] = [
+let initialData: LeaveLedger[] = [
   {
     id: 1,
     employeeId: 1,
@@ -420,6 +421,9 @@ const initialData: LeaveLedger[] = [
     ]
   }
 ]
+
+// 🔐 Phase 3 员工池对齐
+initialData = alignEmployeeFields(initialData)
 
 /**
  * 获取假期台账列表 Mock 函数

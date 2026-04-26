@@ -9,7 +9,7 @@
           <el-icon><User /></el-icon>
         </el-avatar>
         <div class="user-details">
-          <div class="greeting-text">{{ greeting }}！{{ userInfo.position || '系统管理员' }}，祝你开心每一天！</div>
+          <div class="greeting-text">{{ greeting }}！{{ userInfo.realName || '系统管理员' }}，祝你开心每一天！</div>
           <div class="user-meta">
             {{ userInfo.userName || userInfo.realName }} | {{ userInfo.department || userInfo.departmentName }} | {{ userInfo.position || '系统管理员' }}
           </div>
@@ -31,7 +31,7 @@
         <div class="stat-icon" style="background: #5b9aff;">
           <el-icon><User /></el-icon>
         </div>
-        <div class="stat-number">{{ employeeStats.onJobCount || 3 }}</div>
+        <div class="stat-number">{{ employeeStats.onJobCount ?? 0 }}</div>
         <div class="stat-label">在职员工</div>
       </div>
       <div class="stat-card" @click="handleStatClick('toBeOnboarded')">
@@ -52,7 +52,7 @@
         <div class="stat-icon" style="background: #f08080;">
           <el-icon><Checked /></el-icon>
         </div>
-        <div class="stat-number">{{ employeeStats.formalCount || 3 }}</div>
+        <div class="stat-number">{{ employeeStats.formalCount ?? 0 }}</div>
         <div class="stat-label">正式员工</div>
       </div>
       <div class="stat-card" @click="handleStatClick('toBeOffboarded')">
@@ -102,7 +102,6 @@
         <div class="section-card">
           <div class="section-header">
             <span class="section-title">日程待办</span>
-            <el-button text type="primary" @click="handleViewAllSchedule">全部日程 ></el-button>
           </div>
           <div class="calendar-wrapper">
             <div class="calendar-header">
@@ -283,7 +282,7 @@
       <div class="shortcut-customize">
         <div class="customize-tips">
           <el-alert
-            title="最多可添加12个快捷入口，拖拽可调整顺序"
+            title="最多可添加16个快捷入口，拖拽可调整顺序"
             type="info"
             :closable="false"
           />
@@ -291,7 +290,7 @@
 
         <div class="customize-content">
           <div class="selected-shortcuts">
-            <div class="section-title">已添加的快捷入口（{{ customShortcutList.length }}/12）</div>
+            <div class="section-title">已添加的快捷入口（{{ customShortcutList.length }}/16）</div>
             <VueDraggable
               v-model="customShortcutList"
               :animation="200"
@@ -330,14 +329,14 @@
                 v-for="item in availableShortcuts"
                 :key="item.id"
                 class="available-item"
-                :class="{ disabled: isShortcutAdded(item.id) || customShortcutList.length >= 12 }"
+                :class="{ disabled: isShortcutAdded(item.id) || customShortcutList.length >= 16 }"
                 @click="handleAddShortcut(item)"
               >
                 <div class="shortcut-icon-small" :style="{ background: item.color }">
                   <i class="iconfont-sys" v-html="item.icon"></i>
                 </div>
                 <span class="shortcut-name-text">{{ item.name }}</span>
-                <el-icon v-if="!isShortcutAdded(item.id) && customShortcutList.length < 12">
+                <el-icon v-if="!isShortcutAdded(item.id) && customShortcutList.length < 16">
                   <Plus />
                 </el-icon>
                 <span v-else class="added-tag">已添加</span>
@@ -404,7 +403,7 @@ const greeting = computed(() => {
 })
 
 // 登录时间
-const loginTime = ref('2026-04-07 15:23:49')
+const loginTime = ref('2026-04-15 09:23:41')
 
 // 是否管理员（根据角色权限判断）
 const isAdmin = computed(() => {
@@ -453,24 +452,24 @@ const scheduleRules: FormRules = {
 const shortcutDialogVisible = ref(false)
 const customShortcutList = ref<any[]>([])
 
-// 所有可用的快捷入口
+// 所有可用的快捷入口（Wave 3：对齐 V2.0 终态菜单 8 一级）
 const availableShortcuts = ref([
-  { id: 1, name: '组织管理', icon: '&#xe813;', path: '/organization/department', order: 1, color: '#5b9aff' },
-  { id: 2, name: '员工管理', icon: '&#xe7ae;', path: '/employee/profile', order: 2, color: '#9b7dd4' },
-  { id: 3, name: '考勤管理', icon: '&#xe88c;', path: '/attendance', order: 3, color: '#8bc34a' },
-  { id: 4, name: '薪酬管理', icon: '&#xe88d;', path: '/salary', order: 4, color: '#f08080' },
-  { id: 5, name: '绩效管理', icon: '&#xe88e;', path: '/performance', order: 5, color: '#f0c674' },
-  { id: 6, name: '招聘管理', icon: '&#xe88f;', path: '/recruitment', order: 6, color: '#b0b0b0' },
-  { id: 7, name: '培训管理', icon: '&#xe890;', path: '/training', order: 7, color: '#5b9aff' },
-  { id: 8, name: '系统管理', icon: '&#xe891;', path: '/permission-template', order: 8, color: '#9b7dd4' },
-  { id: 9, name: '岗位管理', icon: '&#xe7ae;', path: '/organization/position', order: 9, color: '#8bc34a' },
-  { id: 10, name: '编制管理', icon: '&#xe813;', path: '/organization/staffing', order: 10, color: '#f08080' },
-  { id: 11, name: '入职管理', icon: '&#xe7ae;', path: '/employee/onboarding', order: 11, color: '#f0c674' },
+  { id: 1, name: '组织架构', icon: '&#xe813;', path: '/org/organization', order: 1, color: '#5b9aff' },
+  { id: 2, name: '员工档案', icon: '&#xe7ae;', path: '/employee/profile', order: 2, color: '#9b7dd4' },
+  { id: 3, name: '考勤记录', icon: '&#xe88c;', path: '/attendance/record', order: 3, color: '#8bc34a' },
+  { id: 4, name: '薪酬带宽', icon: '&#xe88d;', path: '/comp/structure', order: 4, color: '#f08080' },
+  { id: 5, name: '绩效评估', icon: '&#xe88e;', path: '/perf/evaluation', order: 5, color: '#f0c674' },
+  { id: 6, name: '招聘需求', icon: '&#xe88f;', path: '/recruit/demand', order: 6, color: '#b0b0b0' },
+  { id: 7, name: '培训计划', icon: '&#xe890;', path: '/training/plan', order: 7, color: '#5b9aff' },
+  { id: 8, name: '用户账号', icon: '&#xe891;', path: '/system/user-account', order: 8, color: '#9b7dd4' },
+  { id: 9, name: '岗位体系', icon: '&#xe7ae;', path: '/org/position', order: 9, color: '#8bc34a' },
+  { id: 10, name: '编制管理', icon: '&#xe813;', path: '/org/headcount', order: 10, color: '#f08080' },
+  { id: 11, name: '入职管理', icon: '&#xe7ae;', path: '/recruit/onboarding', order: 11, color: '#f0c674' },
   { id: 12, name: '离职管理', icon: '&#xe7ae;', path: '/employee/offboarding', order: 12, color: '#b0b0b0' },
-  { id: 13, name: '加班记录', icon: '&#xe88c;', path: '/attendance', order: 13, color: '#5b9aff' },
-  { id: 14, name: '补卡申请', icon: '&#xe88c;', path: '/attendance', order: 14, color: '#9b7dd4' },
-  { id: 15, name: '请假管理', icon: '&#xe88c;', path: '/leave', order: 15, color: '#8bc34a' },
-  { id: 16, name: '合同管理', icon: '&#xe88d;', path: '/contract', order: 16, color: '#f08080' }
+  { id: 13, name: '加班管理', icon: '&#xe88c;', path: '/attendance/overtime', order: 13, color: '#5b9aff' },
+  { id: 14, name: '补卡申请', icon: '&#xe88c;', path: '/attendance/makeup', order: 14, color: '#9b7dd4' },
+  { id: 15, name: '请假申请', icon: '&#xe88c;', path: '/attendance/leave-application', order: 15, color: '#8bc34a' },
+  { id: 16, name: '合同列表', icon: '&#xe88d;', path: '/contract/list', order: 16, color: '#f08080' }
 ])
 
 // 日历天数
@@ -580,15 +579,10 @@ const handleNextMonth = () => {
   }
 }
 
-// 查看全部日程
-const handleViewAllSchedule = () => {
-  ElMessage.info('跳转到日程管理页面')
-}
-
 // 查看全部审批（跳转到审批待办页面）
 const handleViewAllApproval = () => {
   // 跳转到审批引擎的待办列表页面
-  router.push('/approval-engine/todo')
+  router.push('/system/approval-todo')
 }
 
 // 打开快捷入口自定义弹窗
@@ -608,8 +602,8 @@ const handleAddShortcut = (item: any) => {
     ElMessage.warning('该快捷入口已添加')
     return
   }
-  if (customShortcutList.value.length >= 12) {
-    ElMessage.warning('最多只能添加12个快捷入口')
+  if (customShortcutList.value.length >= 16) {
+    ElMessage.warning('最多只能添加16个快捷入口')
     return
   }
   customShortcutList.value.push({ ...item })

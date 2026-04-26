@@ -169,7 +169,7 @@ const handleReset = () => {
 
 // 查看详情
 const handleView = (row: ApprovalInstance) => {
-  router.push(`/approval-engine/instance/detail/${row.id}`)
+  router.push(`/system/approval-instance/detail/${row.id}`)
 }
 
 // 撤回

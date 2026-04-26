@@ -1,5 +1,6 @@
 import type { FieldWorkRecord, FieldWorkRecordListParams } from '@/types/attendance'
 import { createCrudMock } from '@/utils/crud'
+import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
 
 // 状态映射
 const statusMap: Record<number, string> = {
@@ -282,7 +283,7 @@ const initialData: FieldWorkRecord[] = [
 ]
 
 // 创建 CRUD Mock
-const fieldWorkRecordMock = createCrudMock<FieldWorkRecord>(initialData, {
+const fieldWorkRecordMock = createCrudMock<FieldWorkRecord>(alignEmployeeFields(initialData), {
   searchFields: ['employeeCode', 'employeeName', 'location']
 })
 

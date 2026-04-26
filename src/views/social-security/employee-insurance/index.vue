@@ -12,17 +12,6 @@
             <el-input v-model="queryParams.idCard" placeholder="请输入身份证号" style="width: 200px" clearable />
           </el-form-item>
 
-          <el-form-item label="部门">
-            <el-input v-model="queryParams.department" placeholder="请输入部门名称" style="width: 200px" clearable />
-          </el-form-item>
-
-          <el-form-item label="操作类型">
-            <el-select v-model="queryParams.operationType" placeholder="请选择操作类型" style="width: 150px" clearable>
-              <el-option label="参保" :value="1" />
-              <el-option label="停保" :value="2" />
-            </el-select>
-          </el-form-item>
-
           <el-form-item label="城市">
             <el-input v-model="queryParams.city" placeholder="请输入城市" style="width: 150px" clearable />
           </el-form-item>
@@ -100,7 +89,12 @@
             </template>
           </el-table-column>
           <el-table-column prop="startDate" label="开始日期" min-width="9%" />
-          <el-table-column prop="endDate" label="结束日期" min-width="9%" />
+          <el-table-column label="结束日期" min-width="9%">
+            <template #default="{ row }">
+              <span v-if="row.endDate">{{ row.endDate }}</span>
+              <span v-else class="in-progress-text">进行中</span>
+            </template>
+          </el-table-column>
           <el-table-column label="状态" min-width="8%">
             <template #default="{ row }">
               <el-tag v-if="row.status === 1" type="warning">待办理</el-tag>
@@ -589,5 +583,9 @@ onMounted(() => {
     margin-top: 16px;
     justify-content: flex-end;
   }
+}
+
+.in-progress-text {
+  color: #909399;
 }
 </style>

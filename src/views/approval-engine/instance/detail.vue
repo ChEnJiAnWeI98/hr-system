@@ -221,7 +221,7 @@ const fetchDetail = async () => {
 
 // 返回
 const handleBack = () => {
-  router.push('/approval-engine/instance/list')
+  router.push('/system/approval-instance')
 }
 
 // 撤回

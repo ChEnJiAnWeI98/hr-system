@@ -1,5 +1,102 @@
 import type { AttendanceRecord, AttendanceRecordListParams } from '@/types/attendance'
 import { createCrudMock } from '@/utils/crud'
+import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
+import { EMPLOYEES } from '@/mock/core/employeePool'
+
+/**
+ * Wave 2 B+C 合并：基于员工池生成近 3 个月打卡记录（2026-02-01 ~ 2026-04-23）
+ *
+ * 策略：
+ * - 仅工作日（周一~周五）生成记录，忽略法定节假日对数据量的影响（简化）
+ * - 按员工当日是否在职过滤（terminated 员工 离职日 后不生成）
+ * - 按 hash 分布状态：90% 正常 / 5% 迟到 / 3% 早退 / 1% 旷工 / 1% 请假
+ */
+function buildPoolAttendance(startId: number): AttendanceRecord[] {
+  const records: AttendanceRecord[] = []
+  const WINDOW_START = '2026-02-01'
+  const WINDOW_END = '2026-04-23'
+  let id = startId
+
+  // 列出窗口内所有工作日
+  const workdays: string[] = []
+  const start = new Date(WINDOW_START + 'T00:00:00')
+  const end = new Date(WINDOW_END + 'T00:00:00')
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const dayOfWeek = d.getDay() // 0 周日, 6 周六
+    if (dayOfWeek === 0 || dayOfWeek === 6) continue
+    workdays.push(d.toISOString().slice(0, 10))
+  }
+
+  function isActiveOnDate(emp: (typeof EMPLOYEES)[number], date: string): boolean {
+    if (!emp.entryDate || date < emp.entryDate) return false
+    if (emp.status === 'terminated' && emp.contractEndDate && date > emp.contractEndDate) return false
+    return true
+  }
+
+  function hashOf(a: number, b: number): number {
+    return (a * 9301 + b * 49297 + 11) % 100
+  }
+
+  for (const emp of EMPLOYEES) {
+    for (const day of workdays) {
+      if (!isActiveOnDate(emp, day)) continue
+      const dateNum = parseInt(day.replace(/-/g, ''))
+      const h = hashOf(emp.id, dateNum)
+
+      let status: number, statusName: string
+      let lateMinutes = 0, earlyMinutes = 0, isAbsent = false
+      let clockInTime = '08:55:00', clockOutTime = '18:10:00', workHours = 9.25
+      if (h < 90) {
+        status = 1; statusName = '正常'
+      } else if (h < 95) {
+        status = 2; statusName = '迟到'
+        lateMinutes = 10 + (h % 30)
+        clockInTime = `09:${String(Math.floor((h % 30) / 6) * 10 + 10).padStart(2, '0')}:00`
+        workHours = 8.5
+      } else if (h < 98) {
+        status = 3; statusName = '早退'
+        earlyMinutes = 15 + (h % 30)
+        clockOutTime = `17:${String(60 - (h % 30)).padStart(2, '0')}:00`
+        workHours = 8.5
+      } else if (h < 99) {
+        status = 4; statusName = '旷工'
+        isAbsent = true
+        clockInTime = ''
+        clockOutTime = ''
+        workHours = 0
+      } else {
+        status = 5; statusName = '请假'
+        clockInTime = ''
+        clockOutTime = ''
+        workHours = 0
+      }
+
+      records.push({
+        id: id++,
+        employeeId: emp.id,
+        employeeCode: emp.employeeNo,
+        employeeName: emp.nameZh,
+        departmentName: emp.orgName,
+        attendanceDate: day,
+        clockInTime,
+        clockOutTime,
+        clockInLocation: isAbsent || status === 5 ? '' : `${emp.workLocation}办公区`,
+        clockOutLocation: isAbsent || status === 5 ? '' : `${emp.workLocation}办公区`,
+        clockInPhoto: '',
+        clockOutPhoto: '',
+        workHours,
+        lateMinutes,
+        earlyMinutes,
+        isAbsent,
+        status,
+        statusName,
+        createTime: day + ' ' + (clockInTime || '08:00:00'),
+        updateTime: day + ' ' + (clockOutTime || '18:00:00')
+      } as AttendanceRecord)
+    }
+  }
+  return records
+}
 
 // 状态映射
 const statusMap: Record<number, string> = {
@@ -425,10 +522,17 @@ const initialData: AttendanceRecord[] = [
   }
 ]
 
+// Wave 2 B+C 合并：合并手写 + 员工池动态生成（近 3 个月工作日全员）
+const alignedInitial = alignEmployeeFields(initialData)
+const poolRecords = buildPoolAttendance(1000) // id 从 1000 起，避开手写的 1-21
+
 // 创建 CRUD Mock
-const attendanceRecordMock = createCrudMock<AttendanceRecord>(initialData, {
-  searchFields: ['employeeCode', 'employeeName']
-})
+const attendanceRecordMock = createCrudMock<AttendanceRecord>(
+  [...alignedInitial, ...poolRecords],
+  {
+    searchFields: ['employeeCode', 'employeeName']
+  }
+)
 
 /**
  * 获取考勤记录列表 Mock 函数（带自定义筛选）

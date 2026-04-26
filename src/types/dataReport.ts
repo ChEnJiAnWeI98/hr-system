@@ -46,14 +46,10 @@ export interface DashboardData {
 export interface TrendData {
   /** 日期 */
   date: string
-  /** 在职人数 */
-  employeeCount?: number
-  /** 新增人数 */
-  newEmployees?: number
-  /** 离职人数 */
-  resignedEmployees?: number
-  /** 人力成本 */
-  laborCost?: number
+  /** 数量（用于人员趋势） */
+  count?: number
+  /** 成本（用于成本趋势） */
+  cost?: number
 }
 
 /**

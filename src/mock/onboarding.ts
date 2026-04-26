@@ -473,3 +473,89 @@ export function batchImportOnboardingMock(data: Partial<OnboardingApplication>[]
     failList
   }
 }
+
+// ============ Phase 2.4 专用 Mock 函数 ============
+// 说明：这些函数服务于「招聘 > 入职衔接（Pre-Onboarding）」模块，
+//      处理候选人阶段的 H5 自助填报、鸽子预警、爽约归档。
+//      员工 > 入职办理 模块不使用这些函数。
+//      数据字段存储在招聘端 types/recruitment.ts 的 Onboarding 类型上；
+//      此处操作的 applications 数组实际是员工端的数据，但共享了同一个 Mock 存储。
+//      两端通过不同的 type 视图访问同一份 Mock，字段冗余可接受。
+
+/**
+ * 发送 Pre-onboarding 填报链接（Mock：生成一个假链接写入 fillLink）
+ */
+export function sendFillLinkMock(id: number, templateId: number, templateName: string) {
+  const idx = applications.findIndex((a) => a.id === id)
+  if (idx === -1) throw new Error('入职记录不存在')
+  const link = `https://candidate.demo/onboarding/fill/${id}?token=${Math.random().toString(36).slice(2, 10)}`
+  ;(applications[idx] as any) = {
+    ...applications[idx],
+    onboardingTemplateId: templateId,
+    onboardingTemplateName: templateName,
+    fillLink: link,
+    fillProgress: 0,
+    updateTime: new Date().toLocaleString('zh-CN')
+  }
+  return applications[idx]
+}
+
+/**
+ * 模拟候选人在线填报：设置 fillProgress
+ */
+export function simulateCandidateFillMock(id: number, progress: number) {
+  const idx = applications.findIndex((a) => a.id === id)
+  if (idx === -1) throw new Error('入职记录不存在')
+  const cur: any = applications[idx]
+  ;(applications[idx] as any) = {
+    ...applications[idx],
+    fillProgress: Math.max(0, Math.min(100, progress)),
+    fillCompleteTime: progress >= 100 ? new Date().toLocaleString('zh-CN') : cur.fillCompleteTime,
+    updateTime: new Date().toLocaleString('zh-CN')
+  }
+  return applications[idx]
+}
+
+/**
+ * 更新多部门任务 JSON
+ */
+export function updateMultiDeptTasksMock(id: number, tasksJson: string) {
+  const idx = applications.findIndex((a) => a.id === id)
+  if (idx === -1) throw new Error('入职记录不存在')
+  ;(applications[idx] as any) = {
+    ...applications[idx],
+    multiDeptTasks: tasksJson,
+    updateTime: new Date().toLocaleString('zh-CN')
+  }
+  return applications[idx]
+}
+
+/**
+ * 鸽子预警（手动触发）
+ */
+export function triggerNoShowAlertMock(id: number) {
+  const idx = applications.findIndex((a) => a.id === id)
+  if (idx === -1) throw new Error('入职记录不存在')
+  ;(applications[idx] as any) = {
+    ...applications[idx],
+    noShowAlert: 1,
+    updateTime: new Date().toLocaleString('zh-CN')
+  }
+  return applications[idx]
+}
+
+/**
+ * 爽约归档
+ */
+export function archiveNoShowMock(id: number, reasonText: string) {
+  const idx = applications.findIndex((a) => a.id === id)
+  if (idx === -1) throw new Error('入职记录不存在')
+  ;(applications[idx] as any) = {
+    ...applications[idx],
+    status: 6, // 已撤回 / 已归档
+    statusName: '爽约归档',
+    noShowReason: reasonText,
+    updateTime: new Date().toLocaleString('zh-CN')
+  }
+  return applications[idx]
+}

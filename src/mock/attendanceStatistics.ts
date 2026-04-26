@@ -1,5 +1,6 @@
 import type { AttendanceStatistics, AttendanceStatisticsListParams } from '@/types/attendance'
 import { createCrudMock } from '@/utils/crud'
+import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
 
 // 初始数据
 const initialData: AttendanceStatistics[] = [
@@ -843,7 +844,7 @@ const initialData: AttendanceStatistics[] = [
 ]
 
 // 创建 CRUD Mock
-const attendanceStatisticsMock = createCrudMock<AttendanceStatistics>(initialData, {
+const attendanceStatisticsMock = createCrudMock<AttendanceStatistics>(alignEmployeeFields(initialData), {
   searchFields: ['employeeCode', 'employeeName']
 })
 

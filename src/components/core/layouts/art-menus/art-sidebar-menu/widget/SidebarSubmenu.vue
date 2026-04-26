@@ -55,6 +55,7 @@
   import { formatMenuTitle } from '@/router/utils/utils'
   import { handleMenuJump } from '@/utils/navigation'
   import { useSettingStore } from '@/store/modules/setting'
+  import { useRBACStore } from '@/store/modules/rbac'
 
   interface MenuTheme {
     iconColor?: string
@@ -89,6 +90,7 @@
   const emit = defineEmits<Emits>()
 
   const settingStore = useSettingStore()
+  const rbacStore = useRBACStore()
 
   const { menuOpen } = storeToRefs(settingStore)
 
@@ -110,11 +112,16 @@
   /**
    * 处理子菜单标题点击
    * 跳转到第一个子菜单
+   *
+   * ⚠️ 延迟跳转：避免 router.push 立即触发后，default-active 变化把刚展开的
+   *    父菜单又收起（Element Plus el-menu 的 active 变化会重置展开状态）。
+   *    等菜单展开动画完成后再跳转，体验更稳。
    * @param item 菜单项数据
    */
   const handleSubmenuClick = (item: AppRouteRecord): void => {
     closeMenu()
-    handleMenuJump(item, true)
+    // 展开动画约 300ms + show-timeout 50ms ≈ 350ms
+    setTimeout(() => handleMenuJump(item, true), 350)
   }
 
   /**
@@ -136,6 +143,14 @@
       .filter((item) => {
         // 如果当前项被隐藏，直接过滤掉
         if (item.meta?.isHide) {
+          return false
+        }
+
+        // 🔐 RBAC 菜单权限判断（V2.0 Phase 2.11）
+        // 如果路由 meta 里标注了 menuCode，且当前角色无该菜单权限，则过滤掉
+        // 注意：一级菜单本身没 menuCode，靠"所有子菜单都被过滤则父菜单隐藏"机制自动隐藏
+        const menuCode = (item.meta as any)?.menuCode
+        if (menuCode && !rbacStore.hasMenu(menuCode)) {
           return false
         }
 

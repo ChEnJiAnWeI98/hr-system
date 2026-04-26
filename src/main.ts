@@ -15,6 +15,11 @@ import '@icons/system/iconfont.css'                 // 系统图标
 import { setupGlobDirectives } from './directives'
 import { setupErrorHandle } from './utils/sys/error-handle'
 
+// 开发环境：注册 window.__hrHealthCheck() 数据健康度检查入口
+if (import.meta.env.DEV) {
+  import('./mock/core/dataHealthCheck')
+}
+
 document.addEventListener(
   'touchstart',
   function () {},

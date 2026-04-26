@@ -1,5 +1,15 @@
 <template>
   <div class="interview-container">
+    <!-- 视图切换 -->
+    <div class="view-switcher">
+      <el-radio-group v-model="viewMode">
+        <el-radio-button value="list">面试列表</el-radio-button>
+        <el-radio-button value="interviewer">面试官效率</el-radio-button>
+      </el-radio-group>
+    </div>
+
+    <!-- 面试列表视图 -->
+    <template v-if="viewMode === 'list'">
     <!-- 筛选卡片 -->
     <el-card class="filter-card">
       <el-form :model="queryParams">
@@ -134,7 +144,7 @@
         label-width="100px"
       >
         <el-form-item label="候选人姓名" prop="candidateName">
-          <el-input v-model="formData.candidateName" placeholder="请输入候选人姓名" />
+          <CandidatePicker v-model="formData.candidateName" @select="onCandidatePick" />
         </el-form-item>
 
         <el-form-item label="应聘岗位" prop="position">
@@ -171,6 +181,36 @@
         <el-form-item label="面试地点" prop="location">
           <el-input v-model="formData.location" placeholder="请输入面试地点" />
         </el-form-item>
+
+        <el-form-item
+          v-if="formData.interviewType === 2"
+          label="视频面试链接"
+          prop="videoLink"
+        >
+          <el-input v-model="formData.videoLink" placeholder="如腾讯会议 / Zoom 链接（选填）">
+            <template #append>
+              <el-button @click="handleGenerateVideoLink">一键生成腾讯会议</el-button>
+            </template>
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="评价模板">
+          <el-select
+            v-model="formData.evaluationTemplateId"
+            placeholder="选择面试评价模板（选填）"
+            style="width: 100%"
+            clearable
+            @change="handleSelectTemplate"
+          >
+            <el-option
+              v-for="t in evalTemplates"
+              :key="t.id"
+              :label="`${t.templateName}${t.applicableJobFamily ? ' - ' + t.applicableJobFamily : ''}`"
+              :value="t.id"
+            />
+          </el-select>
+          <div class="form-hint">选择后，面试官填写评价时会按该模板的维度打分</div>
+        </el-form-item>
       </el-form>
 
       <template #footer>
@@ -181,45 +221,107 @@
       </template>
     </el-dialog>
 
-    <!-- 填写评价弹窗 -->
+    <!-- 填写评价弹窗（Phase 2.2：按模板多维度打分） -->
     <el-dialog
       v-model="evaluateDialogVisible"
-      title="填写评价"
-      width="600px"
+      title="填写面试评价"
+      width="680px"
       @close="handleEvaluateDialogClose"
     >
-      <el-form
-        ref="evaluateFormRef"
-        :model="evaluateFormData"
-        :rules="evaluateFormRules"
-        label-width="100px"
-      >
-        <el-form-item label="评分" prop="rating">
-          <el-rate v-model="evaluateFormData.rating" :max="5" show-score />
-        </el-form-item>
+      <el-alert
+        v-if="!currentTemplate"
+        type="warning"
+        :closable="false"
+        show-icon
+        title="该面试未关联评价模板，将按通用方式打分。建议在安排面试时选择合适的评价模板。"
+        style="margin-bottom: 12px"
+      />
+      <el-alert
+        v-else
+        type="info"
+        :closable="false"
+        show-icon
+        :title="`当前模板：${currentTemplate.templateName}（${currentTemplate.scoreRule === 'weighted' ? '加权平均' : '简单求和'}）`"
+        style="margin-bottom: 12px"
+      />
 
-        <el-form-item label="评价内容" prop="evaluation">
-          <el-input
-            v-model="evaluateFormData.evaluation"
-            type="textarea"
-            :rows="5"
-            placeholder="请输入评价内容"
-          />
-        </el-form-item>
+      <!-- 按模板维度打分 -->
+      <div v-if="currentTemplate" class="evaluation-form">
+        <el-form :model="evalForm" label-width="120px">
+          <el-form-item
+            v-for="(d, idx) in evalForm.dimensions"
+            :key="d.dimensionName"
+            :label="d.dimensionName"
+          >
+            <div class="dim-row">
+              <el-rate v-model="d.score" :max="d.maxScore" allow-half show-score />
+              <span class="dim-weight">权重：{{ currentTemplate.dimensions[idx]?.weight }}%</span>
+            </div>
+            <div v-if="currentTemplate.dimensions[idx]?.description" class="dim-desc">
+              {{ currentTemplate.dimensions[idx].description }}
+            </div>
+          </el-form-item>
 
-        <el-form-item label="面试结果" prop="result">
-          <el-select v-model="evaluateFormData.result" placeholder="请选择面试结果" style="width: 100%">
-            <el-option label="通过" :value="1" />
-            <el-option label="不通过" :value="2" />
-            <el-option label="待定" :value="3" />
-          </el-select>
-        </el-form-item>
-      </el-form>
+          <el-form-item label="评语">
+            <el-input v-model="evalForm.comment" type="textarea" :rows="4" placeholder="请输入评语，帮助团队共同决策" />
+          </el-form-item>
+
+          <el-form-item label="结果建议">
+            <el-select v-model="evalForm.resultSuggestion" style="width: 100%">
+              <el-option v-for="r in currentTemplate.resultOptions" :key="r" :label="r" :value="r" />
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="总分">
+            <div class="total-score">
+              <el-tag size="large" :type="computedTotal >= 80 ? 'success' : computedTotal >= 60 ? 'warning' : 'danger'">
+                {{ computedTotal }} 分
+              </el-tag>
+              <span class="hint">系统根据维度权重自动计算</span>
+            </div>
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <!-- 无模板时回退到简单打分 -->
+      <div v-else>
+        <el-form label-width="100px">
+          <el-form-item label="综合评分">
+            <el-rate v-model="evalForm.simpleRating" :max="5" show-score />
+          </el-form-item>
+          <el-form-item label="评价内容">
+            <el-input v-model="evalForm.comment" type="textarea" :rows="5" placeholder="请输入评价内容" />
+          </el-form-item>
+          <el-form-item label="结果">
+            <el-select v-model="evalForm.resultSuggestion" style="width: 100%">
+              <el-option label="通过" value="通过" />
+              <el-option label="待定" value="待定" />
+              <el-option label="不通过" value="不通过" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <!-- 已提交的其他面试官评价预览 -->
+      <div v-if="otherEvaluations.length > 0" class="other-evals">
+        <div class="others-title">其他面试官评价（{{ otherEvaluations.length }} 位）</div>
+        <div v-for="e in otherEvaluations" :key="e.id" class="other-eval-item">
+          <div class="other-eval-head">
+            <span class="other-name">{{ e.interviewerName }}</span>
+            <el-tag size="small">{{ e.resultSuggestion }}</el-tag>
+            <span class="other-score">{{ e.totalScore }} 分</span>
+          </div>
+          <div class="other-comment" v-if="e.comment">"{{ e.comment }}"</div>
+        </div>
+      </div>
 
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="evaluateDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleEvaluateSubmit">确定</el-button>
+          <el-button @click="handleSaveEvalDraft">保存草稿</el-button>
+          <el-button type="primary" @click="handleSubmitEval">
+            提交评价（提交后其他面试官可见）
+          </el-button>
         </div>
       </template>
     </el-dialog>
@@ -267,26 +369,90 @@
         </div>
       </template>
     </el-dialog>
+    </template>
+
+    <!-- 面试官效率视图 -->
+    <InterviewerEfficiencyTab v-else />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import type { Interview, InterviewListParams } from '@/types/recruitment'
+import InterviewerEfficiencyTab from './components/InterviewerEfficiencyTab.vue'
+import CandidatePicker from '@/views/recruitment/_shared/CandidatePicker.vue'
+import type { Resume, Interview, InterviewListParams } from '@/types/recruitment'
 import {
   getInterviewList,
   addInterview,
   updateInterview,
   batchDeleteInterview,
   cancelInterview,
-  evaluateInterview
+  evaluateInterview,
+  getInterviewEvaluations,
+  getMyEvaluation,
+  saveInterviewEvaluation
 } from '@/api/recruitment/interview'
+import { interviewEvaluationTemplateApi } from '@/api/recruitmentConfig'
+import type { InterviewEvaluationTemplate, EvaluationDimension } from '@/types/recruitmentConfig'
+import type { InterviewEvaluation } from '@/types/recruitment'
+import { useUserStore } from '@/store/modules/user'
+import { computed } from 'vue'
+
+const userStore = useUserStore()
+const route = useRoute()
+const router = useRouter()
+
+// 视图切换
+const viewMode = ref<'list' | 'interviewer'>('list')
+
+// 选中简历池候选人 → 预填关联字段
+const onCandidatePick = (r: Resume) => {
+  formData.candidateName = r.candidateName
+  if (r.position) formData.position = r.position
+  formData.resumeId = r.id
+  if (r.resumeNo) formData.resumeNo = r.resumeNo
+}
 
 defineOptions({
   name: 'RecruitmentInterview'
 })
+
+// Phase 2.2：面试评价模板列表
+const evalTemplates = ref<InterviewEvaluationTemplate[]>([])
+const loadEvalTemplates = async () => {
+  const res = await interviewEvaluationTemplateApi.getList({ page: 1, pageSize: 100 })
+  if (res.code === 200) {
+    evalTemplates.value = res.data.list.filter((t: any) => t.status === 1)
+  }
+}
+
+// 选中模板时自动填入模板名（存入 formData.evaluationTemplateName）
+const handleSelectTemplate = (id: number | undefined) => {
+  if (!id) {
+    formData.evaluationTemplateName = undefined
+    return
+  }
+  const t = evalTemplates.value.find((x) => x.id === id)
+  formData.evaluationTemplateName = t?.templateName
+}
+
+// 任务 C：一键生成腾讯会议链接（占位，外部依赖）
+const handleGenerateVideoLink = () => {
+  ElMessageBox.confirm(
+    '该功能需要对接腾讯会议/Zoom 的开放 API，当前为占位操作。是否生成一个演示链接？',
+    '视频面试 - 外部集成开发中',
+    { confirmButtonText: '生成演示链接', cancelButtonText: '取消', type: 'info' }
+  )
+    .then(() => {
+      const demoLink = `https://meeting.tencent.com/dm/${Math.random().toString(36).slice(2, 10)}`
+      formData.videoLink = demoLink
+      ElMessage.success('演示链接已生成（非真实会议，待正式接入）')
+    })
+    .catch(() => {})
+}
 
 // 查询参数
 const queryParams = reactive<InterviewListParams>({
@@ -315,7 +481,10 @@ const formData = reactive<Partial<Interview>>({
   interviewType: 1,
   interviewTime: '',
   interviewer: '',
-  location: ''
+  location: '',
+  videoLink: '',
+  evaluationTemplateId: undefined,
+  evaluationTemplateName: undefined
 })
 
 const formRules: FormRules = {
@@ -328,21 +497,36 @@ const formRules: FormRules = {
   location: [{ required: true, message: '请输入面试地点', trigger: 'blur' }]
 }
 
-// 评价弹窗相关
+// Phase 2.2：评价弹窗（多维度动态模板）
 const evaluateDialogVisible = ref(false)
-const evaluateFormRef = ref<FormInstance>()
-const evaluateFormData = reactive({
-  id: 0,
-  rating: 0,
-  evaluation: '',
-  result: 1
+const currentInterview = ref<Interview | null>(null)
+const currentTemplate = ref<InterviewEvaluationTemplate | null>(null)
+const evalForm = reactive({
+  dimensions: [] as { dimensionName: string; score: number; maxScore: number }[],
+  comment: '',
+  resultSuggestion: '通过',
+  simpleRating: 0 // 无模板时回退
 })
+const otherEvaluations = ref<InterviewEvaluation[]>([])
 
-const evaluateFormRules: FormRules = {
-  rating: [{ required: true, message: '请选择评分', trigger: 'change' }],
-  evaluation: [{ required: true, message: '请输入评价内容', trigger: 'blur' }],
-  result: [{ required: true, message: '请选择面试结果', trigger: 'change' }]
-}
+// 总分计算（根据模板的加权/求和规则）
+const computedTotal = computed(() => {
+  if (!currentTemplate.value) return evalForm.simpleRating * 20
+  if (currentTemplate.value.scoreRule === 'weighted') {
+    let sum = 0
+    evalForm.dimensions.forEach((d, idx) => {
+      const weight = currentTemplate.value!.dimensions[idx]?.weight || 0
+      sum += (d.score / d.maxScore) * 100 * (weight / 100)
+    })
+    return Math.round(sum)
+  }
+  // 简单求和
+  let sum = 0
+  evalForm.dimensions.forEach((d) => {
+    sum += (d.score / d.maxScore) * 100
+  })
+  return Math.round(sum / evalForm.dimensions.length)
+})
 
 // 详情弹窗相关
 const detailDialogVisible = ref(false)
@@ -416,6 +600,10 @@ const handleSubmit = async () => {
         }
         dialogVisible.value = false
         getList()
+        // 从候选人详情页跳转来，提交成功后返回详情页
+        if (route.query.from === 'detail') {
+          router.back()
+        }
       } catch (error) {
         ElMessage.error('操作失败')
       }
@@ -459,40 +647,116 @@ const handleView = (row: Interview) => {
   detailDialogVisible.value = true
 }
 
-// 填写评价
-const handleEvaluate = (row: Interview) => {
-  evaluateFormData.id = row.id
-  evaluateFormData.rating = row.rating || 0
-  evaluateFormData.evaluation = row.evaluation || ''
-  evaluateFormData.result = row.result || 1
+// 填写评价（Phase 2.2：按模板动态渲染维度 + 加载他人评价）
+const handleEvaluate = async (row: Interview) => {
+  currentInterview.value = row
+
+  // 加载关联的评价模板
+  if (row.evaluationTemplateId) {
+    const t = evalTemplates.value.find((x) => x.id === row.evaluationTemplateId)
+    currentTemplate.value = t || null
+  } else {
+    currentTemplate.value = null
+  }
+
+  // 初始化维度数组
+  if (currentTemplate.value) {
+    evalForm.dimensions = currentTemplate.value.dimensions.map((d: EvaluationDimension) => ({
+      dimensionName: d.name,
+      score: 0,
+      maxScore: d.maxScore
+    }))
+    evalForm.resultSuggestion = currentTemplate.value.resultOptions[0] || '通过'
+  } else {
+    evalForm.dimensions = []
+    evalForm.simpleRating = row.rating || 0
+    evalForm.resultSuggestion = row.result === 1 ? '通过' : row.result === 2 ? '不通过' : '待定'
+  }
+  evalForm.comment = ''
+
+  // 加载当前用户已有的草稿/评价（如果有）
+  const uid = userStore.getUserInfo.id as number
+  const myRes = await getMyEvaluation(row.id, uid)
+  if (myRes?.data) {
+    const existing = myRes.data
+    try {
+      const parsedDims = JSON.parse(existing.dimensionScores || '[]')
+      if (parsedDims.length > 0 && currentTemplate.value) {
+        evalForm.dimensions = parsedDims
+      }
+    } catch {}
+    evalForm.comment = existing.comment || ''
+    evalForm.resultSuggestion = existing.resultSuggestion || '通过'
+  }
+
+  // 加载其他面试官已提交评价
+  const othersRes = await getInterviewEvaluations(row.id, uid)
+  if (othersRes?.data) {
+    otherEvaluations.value = (othersRes.data || []).filter((e: InterviewEvaluation) => e.interviewerId !== uid)
+  }
+
   evaluateDialogVisible.value = true
 }
 
-// 提交评价
-const handleEvaluateSubmit = async () => {
-  if (!evaluateFormRef.value) return
-
-  await evaluateFormRef.value.validate(async (valid) => {
-    if (valid) {
-      try {
-        await evaluateInterview(evaluateFormData)
-        ElMessage.success('评价成功')
-        evaluateDialogVisible.value = false
-        getList()
-      } catch (error) {
-        ElMessage.error('评价失败')
-      }
-    }
-  })
+// 保存草稿
+const handleSaveEvalDraft = async () => {
+  await submitEvaluationInner(false)
 }
 
-// 关闭评价弹窗
+// 提交评价
+const handleSubmitEval = async () => {
+  await submitEvaluationInner(true)
+}
+
+// 提交评价（内部）
+const submitEvaluationInner = async (submit: boolean) => {
+  if (!currentInterview.value) return
+  const u = userStore.getUserInfo
+  try {
+    await saveInterviewEvaluation(
+      {
+        interviewId: currentInterview.value.id,
+        interviewerId: u.id,
+        interviewerName: u.nickname,
+        dimensionScores: JSON.stringify(evalForm.dimensions),
+        totalScore: computedTotal.value,
+        comment: evalForm.comment,
+        resultSuggestion: evalForm.resultSuggestion
+      },
+      submit
+    )
+    if (submit) {
+      // 提交后也把面试状态改为"已完成"并写入汇总评价
+      const resultEnum = evalForm.resultSuggestion.includes('不通过')
+        ? 2
+        : evalForm.resultSuggestion.includes('待定')
+          ? 3
+          : 1
+      await evaluateInterview({
+        id: currentInterview.value.id,
+        rating: Math.round(computedTotal.value / 20), // 百分转 5 星
+        evaluation: evalForm.comment || '',
+        result: resultEnum
+      })
+      ElMessage.success('评价已提交')
+      evaluateDialogVisible.value = false
+      getList()
+    } else {
+      ElMessage.success('草稿已保存')
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.message || '保存失败')
+  }
+}
+
 const handleEvaluateDialogClose = () => {
-  evaluateFormRef.value?.resetFields()
-  evaluateFormData.id = 0
-  evaluateFormData.rating = 0
-  evaluateFormData.evaluation = ''
-  evaluateFormData.result = 1
+  currentInterview.value = null
+  currentTemplate.value = null
+  otherEvaluations.value = []
+  evalForm.dimensions = []
+  evalForm.comment = ''
+  evalForm.resultSuggestion = '通过'
+  evalForm.simpleRating = 0
 }
 
 // 取消面试
@@ -512,8 +776,21 @@ const handleCancel = async (row: Interview) => {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
   getList()
+  loadEvalTemplates()
+  // 候选人详情页跳转而来：自动打开新增 Dialog 并预填
+  if (route.query.prefill === 'new') {
+    await nextTick()
+    handleAdd()
+    const q = route.query
+    if (q.candidateName) formData.candidateName = String(q.candidateName)
+    if (q.position) formData.position = String(q.position)
+    if (q.resumeId) formData.resumeId = Number(q.resumeId) || 0
+    // 保留 from 以便提交后回跳，清掉 prefill 防止重复触发
+    const from = route.query.from
+    router.replace({ query: from ? { from: String(from) } : {} })
+  }
 })
 </script>
 
@@ -523,6 +800,88 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.view-switcher {
+  flex-shrink: 0;
+}
+
+/* Phase 2.2 新增样式 */
+.form-hint {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+}
+
+.evaluation-form {
+  .dim-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    .dim-weight {
+      font-size: 12px;
+      color: #909399;
+    }
+  }
+
+  .dim-desc {
+    font-size: 12px;
+    color: #909399;
+    margin-top: 2px;
+  }
+
+  .total-score {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .hint {
+      font-size: 12px;
+      color: #909399;
+    }
+  }
+}
+
+.other-evals {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #ebeef5;
+
+  .others-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    color: #303133;
+  }
+
+  .other-eval-item {
+    padding: 8px 0;
+
+    .other-eval-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .other-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: #303133;
+      }
+
+      .other-score {
+        font-size: 12px;
+        color: #606266;
+      }
+    }
+
+    .other-comment {
+      font-size: 12px;
+      color: #606266;
+      margin-top: 4px;
+      font-style: italic;
+    }
+  }
 }
 
 .filter-card {

@@ -1,229 +1,243 @@
+/**
+ * 试用期管理 Mock 数据（Phase 4.x 业务重构）
+ *
+ * 数据源原则：
+ *   - 当前 status='probation' 员工 → 自动生成"试用期"记录
+ *   - 部分 regular 员工（最近入职的）→ 生成"转正"历史记录
+ *   - 部分 terminated 员工 → 生成"试用未通过"历史记录（演示用）
+ *   - 1 个演示"延长试用期"记录
+ */
 import type { Probation, ProbationListParams } from '@/types/probation'
+import { EMPLOYEES } from '@/mock/core/employeePool'
+
+/** 基于员工池构建初始 Probation 记录 */
+function buildInitialProbations(): Probation[] {
+  const list: Probation[] = []
+  let id = 1
+
+  // 1. 所有 probation 员工：试用期中，入职日期统一为 2026-04-17
+  EMPLOYEES.filter((e) => e.status === 'probation').forEach((e) => {
+    const entryDate = '2026-04-17'
+    const [y, m, d] = entryDate.split('-').map(Number)
+    const regularYear = m + 3 > 12 ? y + 1 : y
+    const regularMonth = ((m + 3 - 1) % 12) + 1
+    const regularDate = `${regularYear}-${String(regularMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    list.push({
+      id: id++,
+      employeeId: e.id,
+      employeeName: e.nameZh,
+      employeeCode: e.employeeNo,
+      departmentId: e.orgId,
+      departmentName: e.orgName,
+      positionId: e.positionId || 0,
+      positionName: e.positionName,
+      entryDate,
+      probationMonths: 3,
+      regularDate,
+      status: 'trial',
+      remark: '入职办理时自动创建',
+      createTime: `${entryDate} 09:00:00`,
+      updateTime: `${entryDate} 09:00:00`
+    })
+  })
+
+  // 2. 1 条延长试用期（从 regular 员工里挑 1 个模拟）
+  const extendedCandidate = EMPLOYEES.filter((e) => e.status === 'regular')[0]
+  if (extendedCandidate) {
+    list.push({
+      id: id++,
+      employeeId: extendedCandidate.id,
+      employeeName: extendedCandidate.nameZh,
+      employeeCode: extendedCandidate.employeeNo,
+      departmentId: extendedCandidate.orgId,
+      departmentName: extendedCandidate.orgName,
+      positionId: extendedCandidate.positionId || 0,
+      positionName: extendedCandidate.positionName,
+      entryDate: '2025-10-15',
+      probationMonths: 3,
+      regularDate: '2026-01-15',
+      status: 'extended',
+      evaluationScore: 68,
+      evaluationComment: '业务能力达标但协作配合度待提升，延长试用期 2 个月观察',
+      evaluatorName: '部门经理',
+      evaluationTime: '2026-01-10 15:00:00',
+      extensionMonths: 2,
+      extensionReason: '需进一步观察跨部门协作表现',
+      remark: '延长至 2026-03-15',
+      createTime: '2025-10-15 09:00:00',
+      updateTime: '2026-01-10 15:00:00'
+    })
+  }
+
+  // 3. 2 条已转正历史（从 regular 员工里挑）
+  EMPLOYEES.filter((e) => e.status === 'regular')
+    .slice(1, 3)
+    .forEach((e, i) => {
+      list.push({
+        id: id++,
+        employeeId: e.id,
+        employeeName: e.nameZh,
+        employeeCode: e.employeeNo,
+        departmentId: e.orgId,
+        departmentName: e.orgName,
+        positionId: e.positionId || 0,
+        positionName: e.positionName,
+        entryDate: '2025-06-01',
+        probationMonths: 3,
+        regularDate: '2025-09-01',
+        status: 'passed',
+        evaluationScore: [90, 85][i],
+        evaluationComment: ['工作认真负责，业务能力强，同意转正', '表现优秀，同意转正'][i],
+        evaluatorName: '部门经理',
+        evaluationTime: '2025-08-28 14:00:00',
+        remark: '',
+        createTime: '2025-06-01 09:00:00',
+        updateTime: '2025-08-28 14:00:00'
+      })
+    })
+
+  // 4. 1 条试用未通过历史（从 terminated 员工里挑 1 个）
+  const failedCandidate = EMPLOYEES.filter((e) => e.status === 'terminated')[0]
+  if (failedCandidate) {
+    list.push({
+      id: id++,
+      employeeId: failedCandidate.id,
+      employeeName: failedCandidate.nameZh,
+      employeeCode: failedCandidate.employeeNo,
+      departmentId: failedCandidate.orgId,
+      departmentName: failedCandidate.orgName,
+      positionId: failedCandidate.positionId || 0,
+      positionName: failedCandidate.positionName,
+      entryDate: '2025-08-01',
+      probationMonths: 3,
+      regularDate: '2025-11-01',
+      status: 'failed',
+      evaluationScore: 45,
+      evaluationComment: '未达到岗位基本要求',
+      evaluatorName: '部门经理',
+      evaluationTime: '2025-10-25 16:00:00',
+      failureReason: '核心技能未达标，无法胜任岗位',
+      remark: '已触发离职流程',
+      createTime: '2025-08-01 09:00:00',
+      updateTime: '2025-10-25 16:00:00'
+    })
+  }
+
+  return list
+}
 
 // 数据存储
-let probations: Probation[] = [
-  {
-    id: 1,
-    employeeId: 1,
-    employeeName: '张三',
-    employeeCode: 'EMP001',
-    departmentId: 1,
-    departmentName: '技术部',
-    positionId: 1,
-    positionName: '前端工程师',
-    entryDate: '2024-01-15',
-    probationMonths: 3,
-    regularDate: '2024-04-15',
-    status: 0,
-    statusName: '试用中',
-    remark: '表现良好',
-    createTime: '2024-01-15 09:00:00',
-    updateTime: '2024-01-15 09:00:00'
-  },
-  {
-    id: 2,
-    employeeId: 2,
-    employeeName: '李四',
-    employeeCode: 'EMP002',
-    departmentId: 2,
-    departmentName: '产品部',
-    positionId: 2,
-    positionName: '产品经理',
-    entryDate: '2023-12-01',
-    probationMonths: 3,
-    regularDate: '2024-03-01',
-    status: 1,
-    statusName: '已转正',
-    evaluationScore: 90,
-    evaluationComment: '工作认真负责，业务能力强，同意转正',
-    evaluatorId: 1,
-    evaluatorName: '王经理',
-    evaluationTime: '2024-02-28 14:30:00',
-    remark: '优秀员工',
-    createTime: '2023-12-01 09:00:00',
-    updateTime: '2024-02-28 14:30:00'
-  },
-  {
-    id: 3,
-    employeeId: 3,
-    employeeName: '王五',
-    employeeCode: 'EMP003',
-    departmentId: 1,
-    departmentName: '技术部',
-    positionId: 3,
-    positionName: '后端工程师',
-    entryDate: '2023-11-01',
-    probationMonths: 3,
-    regularDate: '2024-02-01',
-    status: 2,
-    statusName: '延长试用',
-    evaluationScore: 70,
-    evaluationComment: '技术能力尚可，但沟通协作能力需要提升',
-    evaluatorId: 1,
-    evaluatorName: '王经理',
-    evaluationTime: '2024-01-30 10:00:00',
-    extensionMonths: 1,
-    extensionReason: '需要进一步考察沟通协作能力',
-    remark: '延长试用期1个月',
-    createTime: '2023-11-01 09:00:00',
-    updateTime: '2024-01-30 10:00:00'
-  },
-  {
-    id: 4,
-    employeeId: 4,
-    employeeName: '赵六',
-    employeeCode: 'EMP004',
-    departmentId: 3,
-    departmentName: '市场部',
-    positionId: 4,
-    positionName: '市场专员',
-    entryDate: '2023-10-15',
-    probationMonths: 3,
-    regularDate: '2024-01-15',
-    status: 3,
-    statusName: '不合格',
-    evaluationScore: 50,
-    evaluationComment: '工作态度不积极，业绩未达标',
-    evaluatorId: 2,
-    evaluatorName: '李经理',
-    evaluationTime: '2024-01-10 16:00:00',
-    failureReason: '试用期内业绩未达标，工作态度消极',
-    remark: '试用期不合格，办理离职',
-    createTime: '2023-10-15 09:00:00',
-    updateTime: '2024-01-10 16:00:00'
-  }
-]
+let probations: Probation[] = buildInitialProbations()
 
-let nextId = 5
-
-/**
- * 获取列表 Mock 函数
- */
-export function getProbationListMock(params: ProbationListParams) {
-  const { employeeName, employeeCode, departmentId, status, regularDateStart, regularDateEnd, page = 1, pageSize = 20 } = params
-  let filteredData = [...probations]
-
-  // 筛选
-  if (employeeName) {
-    filteredData = filteredData.filter(item => item.employeeName.includes(employeeName))
-  }
-  if (employeeCode) {
-    filteredData = filteredData.filter(item => item.employeeCode.includes(employeeCode))
-  }
-  if (departmentId !== undefined && departmentId !== null && departmentId !== '') {
-    const deptId = typeof departmentId === 'string' ? parseInt(departmentId) : departmentId
-    filteredData = filteredData.filter(item => item.departmentId === deptId)
-  }
-  if (status !== undefined && status !== null && status !== '') {
-    const statusValue = typeof status === 'string' ? parseInt(status) : status
-    filteredData = filteredData.filter(item => item.status === statusValue)
-  }
-  if (regularDateStart) {
-    filteredData = filteredData.filter(item => item.regularDate >= regularDateStart)
-  }
-  if (regularDateEnd) {
-    filteredData = filteredData.filter(item => item.regularDate <= regularDateEnd)
-  }
-
-  // 分页
-  const start = (page - 1) * pageSize
-  const end = start + Number(pageSize)
-  const list = filteredData.slice(start, end)
-
-  return {
-    list,
-    total: filteredData.length
-  }
-}
-
-/**
- * 获取详情 Mock 函数
- */
-export function getProbationDetailMock(id: number) {
-  return probations.find(item => item.id === id) || null
-}
-
-/**
- * 添加 Mock 函数
- */
-export function addProbationMock(data: any) {
-  const newItem: Probation = {
-    id: nextId++,
-    employeeId: data.employeeId,
-    employeeName: data.employeeName || '',
-    employeeCode: data.employeeCode || '',
-    departmentId: data.departmentId || 0,
-    departmentName: data.departmentName || '',
-    positionId: data.positionId || 0,
-    positionName: data.positionName || '',
-    entryDate: data.entryDate,
-    probationMonths: data.probationMonths,
-    regularDate: data.regularDate || '',
-    status: 0,
-    statusName: '试用中',
-    remark: data.remark || '',
+/** 新增一条试用期记录（由入职流程自动调用，非用户手动操作） */
+export function addProbationFromOnboarding(emp: {
+  employeeId: number
+  employeeName: string
+  employeeCode: string
+  departmentId: number
+  departmentName: string
+  positionId: number
+  positionName: string
+  entryDate: string
+  probationMonths: number
+}) {
+  const [y, m, d] = emp.entryDate.split('-').map(Number)
+  const regularYear = m + emp.probationMonths > 12 ? y + 1 : y
+  const regularMonth = ((m + emp.probationMonths - 1) % 12) + 1
+  const regularDate = `${regularYear}-${String(regularMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  const newId = Math.max(...probations.map((p) => p.id), 0) + 1
+  const record: Probation = {
+    id: newId,
+    ...emp,
+    regularDate,
+    status: 'trial',
+    remark: '入职办理完成自动创建',
     createTime: new Date().toLocaleString('zh-CN'),
     updateTime: new Date().toLocaleString('zh-CN')
   }
-  probations.push(newItem)
-  return newItem
+  probations.push(record)
+  return record
 }
 
-/**
- * 更新 Mock 函数
- */
-export function updateProbationMock(data: any) {
-  const index = probations.findIndex(item => item.id === data.id)
-  if (index !== -1) {
-    probations[index] = {
-      ...probations[index],
-      ...data,
-      updateTime: new Date().toLocaleString('zh-CN')
-    }
-    return probations[index]
+/** 分页列表 */
+export function getProbationListMock(params: ProbationListParams) {
+  const {
+    employeeName,
+    employeeCode,
+    departmentId,
+    status,
+    regularDateStart,
+    regularDateEnd,
+    page = 1,
+    pageSize = 20
+  } = params
+  let list = probations.slice()
+  if (employeeName) list = list.filter((p) => p.employeeName.includes(employeeName))
+  if (employeeCode) list = list.filter((p) => p.employeeCode.includes(employeeCode))
+  if (departmentId) list = list.filter((p) => p.departmentId === Number(departmentId))
+  if (status) list = list.filter((p) => p.status === status)
+  if (regularDateStart) list = list.filter((p) => p.regularDate >= regularDateStart)
+  if (regularDateEnd) list = list.filter((p) => p.regularDate <= regularDateEnd)
+  const total = list.length
+  const start = (Number(page) - 1) * Number(pageSize)
+  return {
+    list: list.slice(start, start + Number(pageSize)),
+    total
   }
-  throw new Error('数据不存在')
 }
 
-/**
- * 删除 Mock 函数
- */
-export function deleteProbationMock(id: number) {
-  const index = probations.findIndex(item => item.id === id)
-  if (index !== -1) {
-    probations.splice(index, 1)
-    return true
-  }
-  throw new Error('数据不存在')
+export function getProbationDetailMock(id: number): Probation | null {
+  return probations.find((p) => p.id === id) || null
 }
 
-/**
- * 转正评估 Mock 函数
- */
-export function evaluateProbationMock(data: any) {
-  const index = probations.findIndex(item => item.id === data.id)
-  if (index !== -1) {
-    const statusMap: Record<number, string> = {
-      1: '已转正',
-      2: '延长试用',
-      3: '不合格'
-    }
-
-    probations[index] = {
-      ...probations[index],
-      status: data.result,
-      statusName: statusMap[data.result],
-      evaluationScore: data.evaluationScore,
-      evaluationComment: data.evaluationComment,
-      evaluatorId: 1,
-      evaluatorName: '当前用户',
-      evaluationTime: new Date().toLocaleString('zh-CN'),
-      extensionMonths: data.extensionMonths,
-      extensionReason: data.extensionReason,
-      failureReason: data.failureReason,
-      updateTime: new Date().toLocaleString('zh-CN')
-    }
-    return probations[index]
+/** 转正评估：根据结果扭转状态 */
+export function evaluateProbationMock(
+  id: number,
+  data: {
+    evaluationScore: number
+    evaluationComment: string
+    result: 'passed' | 'extended' | 'failed'
+    extensionMonths?: number
+    extensionReason?: string
+    failureReason?: string
   }
-  throw new Error('数据不存在')
+): Probation {
+  const record = probations.find((p) => p.id === id)
+  if (!record) throw new Error('试用期记录不存在')
+  record.evaluationScore = data.evaluationScore
+  record.evaluationComment = data.evaluationComment
+  record.evaluationTime = new Date().toLocaleString('zh-CN')
+  record.evaluatorName = record.evaluatorName || 'HR'
+  record.status = data.result
+  if (data.result === 'extended') {
+    record.extensionMonths = data.extensionMonths
+    record.extensionReason = data.extensionReason
+  }
+  if (data.result === 'failed') {
+    record.failureReason = data.failureReason
+  }
+  record.updateTime = new Date().toLocaleString('zh-CN')
+  return record
+}
+
+/** 延长试用期 */
+export function extendProbationMock(id: number, months: number, reason: string): Probation {
+  const record = probations.find((p) => p.id === id)
+  if (!record) throw new Error('试用期记录不存在')
+  record.status = 'extended'
+  record.extensionMonths = months
+  record.extensionReason = reason
+  record.updateTime = new Date().toLocaleString('zh-CN')
+  return record
+}
+
+/** 编辑（仅 trial/extended 允许修改） */
+export function updateProbationMock(id: number, data: Partial<Probation>): Probation {
+  const record = probations.find((p) => p.id === id)
+  if (!record) throw new Error('试用期记录不存在')
+  if (record.status !== 'trial' && record.status !== 'extended') {
+    throw new Error('已转正或试用未通过的记录不可编辑')
+  }
+  Object.assign(record, data, { updateTime: new Date().toLocaleString('zh-CN') })
+  return record
 }

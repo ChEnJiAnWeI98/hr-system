@@ -3,6 +3,7 @@
  */
 
 import type { LeaveApplication, LeaveApplicationListParams } from '@/types/leave'
+import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
 
 // 数据存储（使用 let 而不是 const，允许修改）
 let leaveApplications: LeaveApplication[] = [
@@ -307,6 +308,9 @@ let leaveApplications: LeaveApplication[] = [
     updateTime: '2026-04-06 16:00'
   }
 ]
+
+// 🔐 Phase 3 员工池对齐
+leaveApplications = alignEmployeeFields(leaveApplications)
 
 let nextId = 16
 

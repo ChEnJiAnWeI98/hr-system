@@ -145,6 +145,21 @@ export interface OnboardingApplication {
 }
 
 /**
+ * 模块职责说明：
+ *
+ * 【员工管理 > 入职办理】（OnboardingApplication）← 员工身份
+ *   - 从招聘衔接（候选人身份）转交后的正式入职流程
+ *   - 核心：审批 → 资料清单核验 → 手续清单（签合同/开账号/分设备/录档案）
+ *   - 不做：候选人自助 H5 填报（那是招聘衔接的事）
+ *   - 不做：鸽子预警/爽约归档（那是入职前的风险管理）
+ *
+ * 【招聘管理 > 入职衔接（Pre-Onboarding）】（types/recruitment.ts 的 Onboarding）← 候选人身份
+ *   - 候选人接受 Offer 后到正式报到前的过渡期
+ *   - 核心：H5 自助填报 + 资料收集 + 鸽子预警 + 爽约归档
+ *   - 流程终点：完成资料收集 → 触发创建员工入职办理申请
+ */
+
+/**
  * 材料清单项（入职衔接用）
  */
 export interface MaterialChecklistItem {

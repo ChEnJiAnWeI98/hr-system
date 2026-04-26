@@ -171,13 +171,13 @@
               <el-col :span="12">
                 <el-form-item label="评估结果" prop="result">
                   <el-select v-model="evaluateForm.result" placeholder="请选择评估结果" style="width: 100%">
-                    <el-option label="通过转正" :value="1" />
-                    <el-option label="延长试用" :value="2" />
-                    <el-option label="不合格" :value="3" />
+                    <el-option label="转正" value="passed" />
+                    <el-option label="延长试用期" value="extended" />
+                    <el-option label="试用未通过" value="failed" />
                   </el-select>
                 </el-form-item>
               </el-col>
-              <el-col v-if="evaluateForm.result === 2" :span="12">
+              <el-col v-if="evaluateForm.result === 'extended'" :span="12">
                 <el-form-item label="延长月数" prop="extensionMonths">
                   <el-input v-model.number="evaluateForm.extensionMonths" placeholder="请输入延长月数">
                     <template #append>月</template>
@@ -199,7 +199,7 @@
               </el-col>
             </el-row>
 
-            <el-row v-if="evaluateForm.result === 2" :gutter="20">
+            <el-row v-if="evaluateForm.result === 'extended'" :gutter="20">
               <el-col :span="24">
                 <el-form-item label="延长原因" prop="extensionReason">
                   <el-input
@@ -212,9 +212,9 @@
               </el-col>
             </el-row>
 
-            <el-row v-if="evaluateForm.result === 3" :gutter="20">
+            <el-row v-if="evaluateForm.result === 'failed'" :gutter="20">
               <el-col :span="24">
-                <el-form-item label="不合格原因" prop="failureReason">
+                <el-form-item label="试用未通过原因" prop="failureReason">
                   <el-input
                     v-model="evaluateForm.failureReason"
                     type="textarea"
@@ -335,14 +335,14 @@
             <el-descriptions-item label="团队协作评分">{{ detail.teamworkScore || '-' }} 分</el-descriptions-item>
             <el-descriptions-item label="综合评分">{{ detail.evaluationScore }} 分</el-descriptions-item>
             <el-descriptions-item label="评估结果">
-              <el-tag v-if="detail.status === 1" type="success">已转正</el-tag>
-              <el-tag v-else-if="detail.status === 2" type="warning">延长试用</el-tag>
-              <el-tag v-else-if="detail.status === 3" type="danger">不合格</el-tag>
+              <el-tag :type="PROBATION_STATUS_TYPE[detail.status as ProbationStatus]" size="small">
+                {{ PROBATION_STATUS_LABEL[detail.status as ProbationStatus] }}
+              </el-tag>
             </el-descriptions-item>
             <el-descriptions-item label="评估意见" :span="2">{{ detail.evaluationComment }}</el-descriptions-item>
-            <el-descriptions-item v-if="detail.status === 2" label="延长月数">{{ detail.extensionMonths }} 个月</el-descriptions-item>
-            <el-descriptions-item v-if="detail.status === 2" label="延长原因" :span="2">{{ detail.extensionReason }}</el-descriptions-item>
-            <el-descriptions-item v-if="detail.status === 3" label="不合格原因" :span="2">{{ detail.failureReason }}</el-descriptions-item>
+            <el-descriptions-item v-if="detail.status === 'extended'" label="延长月数">{{ detail.extensionMonths }} 个月</el-descriptions-item>
+            <el-descriptions-item v-if="detail.status === 'extended'" label="延长原因" :span="2">{{ detail.extensionReason }}</el-descriptions-item>
+            <el-descriptions-item v-if="detail.status === 'failed'" label="试用未通过原因" :span="2">{{ detail.failureReason }}</el-descriptions-item>
           </el-descriptions>
         </el-card>
       </template>
@@ -375,11 +375,12 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { getProbationDetail, addProbation, updateProbation, evaluateProbation } from '@/api/probation'
+import { getProbationDetail, updateProbation, evaluateProbation } from '@/api/probation'
 import { getEmployeeList } from '@/api/employee'
 import { getDepartmentTree } from '@/api/department'
 import { getPositionList } from '@/api/position'
-import type { Probation, ProbationForm, RegularizationForm } from '@/types/probation'
+import type { Probation, ProbationForm, RegularizationForm, ProbationStatus } from '@/types/probation'
+import { PROBATION_STATUS_LABEL, PROBATION_STATUS_TYPE } from '@/types/probation'
 import type { Employee } from '@/types/employee'
 
 defineOptions({
@@ -435,7 +436,7 @@ const evaluateForm = reactive<RegularizationForm & { workAbilityScore?: number; 
   id: 0,
   evaluationScore: 0,
   evaluationComment: '',
-  result: 1,
+  result: 'passed',
   workAbilityScore: 0,
   workAttitudeScore: 0,
   teamworkScore: 0
@@ -452,7 +453,7 @@ const evaluateRules = {
     { type: 'number', min: 1, max: 6, message: '延长月数范围为1-6个月', trigger: 'blur' }
   ],
   extensionReason: [{ required: true, message: '请输入延长原因', trigger: 'blur' }],
-  failureReason: [{ required: true, message: '请输入不合格原因', trigger: 'blur' }]
+  failureReason: [{ required: true, message: '请输入试用未通过原因', trigger: 'blur' }]
 }
 
 // 延长表单
@@ -499,21 +500,21 @@ const newEndDate = ref('')
  */
 const initMode = () => {
   const routeName = route.name as string
-  if (routeName === 'EmployeeProbationCreate') {
+  if (routeName === 'HrmProbationCreate') {
     mode.value = 'create'
-  } else if (routeName === 'EmployeeProbationEdit') {
+  } else if (routeName === 'HrmProbationEdit') {
     mode.value = 'edit'
     id.value = Number(route.params.id)
-  } else if (routeName === 'EmployeeProbationEvaluate') {
+  } else if (routeName === 'HrmProbationEvaluate') {
     mode.value = 'evaluate'
     id.value = Number(route.params.id)
-  } else if (routeName === 'EmployeeProbationExtend') {
+  } else if (routeName === 'HrmProbationExtend') {
     mode.value = 'extend'
     id.value = Number(route.params.id)
-  } else if (routeName === 'EmployeeProbationEvaluationDetail') {
+  } else if (routeName === 'HrmProbationEvaluationDetail') {
     mode.value = 'evaluationDetail'
     id.value = Number(route.params.id)
-  } else if (routeName === 'EmployeeProbationExtensionDetail') {
+  } else if (routeName === 'HrmProbationExtensionDetail') {
     mode.value = 'extensionDetail'
     id.value = Number(route.params.id)
   }
@@ -599,12 +600,9 @@ const calculateNewEndDate = () => {
 const handleSave = async () => {
   try {
     await formRef.value.validate()
-
-    const apiFunc = mode.value === 'create' ? addProbation : updateProbation
-    const res = await apiFunc(formData)
-
+    const res = await updateProbation(formData)
     if (res.code === 200) {
-      ElMessage.success(mode.value === 'create' ? '添加成功' : '更新成功')
+      ElMessage.success('更新成功')
       handleBack()
     }
   } catch (error) {
@@ -642,7 +640,7 @@ const handleExtend = async () => {
       id: id.value,
       evaluationScore: 0,
       evaluationComment: '延长试用期',
-      result: 2,
+      result: 'extended',
       extensionMonths: extendForm.extensionMonths,
       extensionReason: extendForm.extensionReason
     }

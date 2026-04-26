@@ -1,4 +1,56 @@
 import type { ProvidentFund, ProvidentFundListParams } from '@/types/socialSecurity'
+import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
+import { EMPLOYEES } from '@/mock/core/employeePool'
+
+/**
+ * Wave 2 B+C 合并：基于员工池生成全员公积金记录
+ *
+ * 按工作地点映射缴存城市，费率按城市标准 5%/7%/12% 三档：
+ * - 一线（北京/上海/深圳）：12%
+ * - 新一线（杭州/成都/南京）：7%
+ * - 其他：5%
+ */
+function generatePoolFundRecords(startId: number): ProvidentFund[] {
+  const CITY_RATE: Record<string, number> = {
+    北京: 12, 上海: 12, 深圳: 12,
+    杭州: 7, 成都: 7, 南京: 7,
+    西安: 5, 武汉: 5
+  }
+  const records: ProvidentFund[] = []
+  let nextId = startId
+
+  for (const emp of EMPLOYEES) {
+    if (emp.status === 'pending_onboard') continue
+    const city = emp.workLocation || '北京'
+    const rate = CITY_RATE[city] ?? 5
+    const base = emp.socialBase || emp.baseSalary || 10000
+    const amount = Math.round((base * rate) / 100)
+
+    const isTerminated = emp.status === 'terminated'
+    records.push({
+      id: nextId++,
+      employeeId: emp.id,
+      employeeName: emp.nameZh,
+      idCard: emp.certificateNo,
+      department: emp.orgName,
+      city,
+      fundBase: base,
+      companyRate: rate,
+      personalRate: rate,
+      companyAmount: amount,
+      personalAmount: amount,
+      totalAmount: amount * 2,
+      startDate: emp.entryDate,
+      endDate: isTerminated ? (emp.contractEndDate || undefined) : undefined,
+      status: 1,
+      operationType: isTerminated ? 2 : 1,
+      remark: isTerminated ? '员工离职封存' : '正常缴纳',
+      createTime: emp.entryDate + ' 10:00:00',
+      updateTime: emp.entryDate + ' 10:00:00'
+    } as ProvidentFund)
+  }
+  return records
+}
 
 // 数据存储
 let providentFunds: ProvidentFund[] = [
@@ -506,7 +558,12 @@ let providentFunds: ProvidentFund[] = [
   }
 ]
 
-let nextId = 26
+providentFunds = alignEmployeeFields(providentFunds)
+
+// Wave 2 B+C 合并：追加员工池全员公积金记录
+providentFunds = [...providentFunds, ...generatePoolFundRecords(100)]
+
+let nextId = 1000 // 预留手写+池数据空间
 
 /**
  * 获取公积金列表 Mock 函数

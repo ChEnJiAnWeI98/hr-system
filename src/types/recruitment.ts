@@ -230,11 +230,71 @@ export interface Resume {
   screenTime?: string
   /** 筛选备注 */
   screenRemark?: string
+
+  /** ========== Phase 2.1 新增字段 ========== */
+  /** 关联人才库档案ID（简历入库人才库后回写） */
+  talentProfileId?: number
+  /** 简历解析状态：pending-未解析 / parsing-解析中 / success-解析成功 / failed-解析失败 / manual-人工修正 */
+  parseStatus?: 'pending' | 'parsing' | 'success' | 'failed' | 'manual'
+  /** 原始解析结果 JSON（结构化数据） */
+  parsedData?: string
+  /** JD 匹配度评分 0-100 */
+  jdMatchScore?: number
+  /** 身份证号（脱敏存储） */
+  idCard?: string
+  /** 淘汰原因代码（关联淘汰原因字典） */
+  rejectReasonCode?: string
+  /** 淘汰原因文字（冗余存储便于展示） */
+  rejectReasonText?: string
+  /** 淘汰时间 */
+  rejectTime?: string
+  /** 淘汰操作人 */
+  rejectByName?: string
+
   /** 创建时间 */
   createTime: string
   /** 更新时间 */
   updateTime: string
 }
+
+/**
+ * 候选人笔记/评论（Phase 2.1 新增）
+ * 在简历详情页的团队协作区使用，仅对内可见
+ */
+export interface CandidateNote {
+  id: number
+  /** 关联简历ID（一条笔记只属于一份简历） */
+  resumeId: number
+  /** 笔记作者 */
+  authorId: number
+  authorName: string
+  authorAvatar?: string
+  /** 笔记内容（支持 @提醒，格式 @姓名） */
+  content: string
+  /** 被 @ 提醒的用户ID列表（逗号分隔） */
+  mentionedUserIds?: string
+  /** 附件URLs（逗号分隔） */
+  attachments?: string
+  /** 回复的笔记ID（支持讨论回复） */
+  replyToId?: number
+  createTime: string
+}
+
+/**
+ * 淘汰原因字典（Phase 2.1 预置）
+ */
+export const REJECT_REASON_OPTIONS = [
+  { code: 'edu_mismatch', label: '学历不符合要求' },
+  { code: 'exp_insufficient', label: '工作年限不足' },
+  { code: 'salary_mismatch', label: '薪资不匹配' },
+  { code: 'skill_gap', label: '技能差距较大' },
+  { code: 'bg_check_fail', label: '背景调查不通过' },
+  { code: 'comprehensive_fail', label: '综合能力不足' },
+  { code: 'culture_mismatch', label: '文化匹配度不足' },
+  { code: 'candidate_withdraw', label: '候选人主动放弃' },
+  { code: 'position_closed', label: '职位已关闭' },
+  { code: 'other', label: '其他原因' }
+] as const
 
 /**
  * 简历列表查询参数
@@ -314,6 +374,17 @@ export interface Interview {
   evaluation?: string
   /** 面试反馈（JSON字符串，包含各维度评分） */
   feedback?: string
+
+  /** ========== Phase 2.2 新增字段 ========== */
+  /** 关联的面试评价模板ID（引用 Phase 1.1.1 模板） */
+  evaluationTemplateId?: number
+  /** 模板名称（冗余显示） */
+  evaluationTemplateName?: string
+  /** 视频面试链接（面试类型为视频时使用） */
+  videoLink?: string
+  /** 候选人是否确认面试：0-待确认 1-已确认 2-已改期 3-已取消 */
+  candidateConfirmStatus?: number
+
   /** 创建人ID */
   creatorId: number
   /** 创建人姓名 */
@@ -321,6 +392,33 @@ export interface Interview {
   /** 创建时间 */
   createTime: string
   /** 更新时间 */
+  updateTime: string
+}
+
+/**
+ * 多人协同面试评价记录（Phase 2.2 新增）
+ * 同一场面试由多位面试官独立打分，最后汇总
+ */
+export interface InterviewEvaluation {
+  id: number
+  /** 关联面试ID */
+  interviewId: number
+  /** 面试官ID */
+  interviewerId: number
+  /** 面试官姓名 */
+  interviewerName: string
+  /** 维度评分明细（JSON 字符串），格式：[{dimensionName, score, maxScore}] */
+  dimensionScores: string
+  /** 总分（各维度加权/求和后的结果） */
+  totalScore: number
+  /** 评语 */
+  comment?: string
+  /** 结果建议：'强烈推荐' / '通过' / '待定' / '不通过' */
+  resultSuggestion: string
+  /** 是否已提交（true 后对其他面试官可见） */
+  submitted: boolean
+  submitTime?: string
+  createTime: string
   updateTime: string
 }
 
@@ -406,6 +504,25 @@ export interface Offer {
   responseTime?: string
   /** 候选人响应意见 */
   responseRemark?: string
+
+  /** ========== Phase 2.3 新增字段 ========== */
+  /** 关联的 Offer 模板ID */
+  offerTemplateId?: number
+  /** 模板名称（冗余展示） */
+  offerTemplateName?: string
+  /** 版本号（每次变更 +1） */
+  version?: number
+  /** 生成的 Offer 正文（变量替换后，用于预览/签署） */
+  offerContent?: string
+  /** 候选人拒绝原因代码（字典） */
+  rejectReasonCode?: string
+  /** 候选人拒绝原因说明 */
+  rejectReasonText?: string
+  /** 汇报对象（填入模板占位符 {{汇报对象}}） */
+  reportingTo?: string
+  /** 反馈截止时间 */
+  feedbackDeadline?: string
+
   /** 创建人ID */
   creatorId: number
   /** 创建人姓名 */
@@ -415,6 +532,20 @@ export interface Offer {
   /** 更新时间 */
   updateTime: string
 }
+
+/**
+ * Offer 拒绝原因字典（Phase 2.3 预置）
+ */
+export const OFFER_REJECT_REASON_OPTIONS = [
+  { code: 'salary_low', label: '薪资不满意' },
+  { code: 'location', label: '工作地点不合适' },
+  { code: 'better_offer', label: '有更好的 Offer' },
+  { code: 'family_reason', label: '家庭/个人原因' },
+  { code: 'growth_concern', label: '对岗位发展空间有顾虑' },
+  { code: 'commute', label: '通勤不便' },
+  { code: 'company_reason', label: '对公司/团队有顾虑' },
+  { code: 'other', label: '其他原因' }
+] as const
 
 /**
  * Offer列表查询参数
@@ -504,11 +635,65 @@ export interface Onboarding {
   responsibleId: number
   /** 负责人姓名 */
   responsibleName: string
+
+  /** ========== Phase 2.4 新增字段 ========== */
+  /** 关联的入职资料填报模板ID（引用 Phase 1.1.4） */
+  onboardingTemplateId?: number
+  /** 模板名称（冗余展示） */
+  onboardingTemplateName?: string
+  /** 候选人自助填报链接（H5） */
+  fillLink?: string
+  /** 候选人自助填报完成度（0-100） */
+  fillProgress?: number
+  /** 候选人已填报的字段值（JSON 字符串） */
+  fillFormData?: string
+  /** 候选人已上传的附件（JSON 字符串：[{name, url}]） */
+  fillAttachments?: string
+  /** 多部门任务分派（JSON 字符串） */
+  multiDeptTasks?: string
+  /** 鸽子预警状态：0-正常 1-已预警 */
+  noShowAlert?: number
+  /** 爽约原因 */
+  noShowReason?: string
+  /** 填报完成时间 */
+  fillCompleteTime?: string
+
   /** 创建时间 */
   createTime: string
   /** 更新时间 */
   updateTime: string
 }
+
+/**
+ * 多部门入职任务项（Phase 2.4）
+ */
+export interface MultiDeptTask {
+  /** 任务名称 */
+  name: string
+  /** 责任部门：IT / 行政 / HRBP / 导师 / 其他 */
+  owner: 'IT' | '行政' | 'HRBP' | '导师' | '其他'
+  /** 具体经办人 */
+  assignee?: string
+  /** 状态：pending-待处理 / doing-进行中 / done-已完成 */
+  status: 'pending' | 'doing' | 'done'
+  /** 完成时间 */
+  completeTime?: string
+  /** 备注 */
+  remark?: string
+}
+
+/**
+ * 爽约归档原因字典（Phase 2.4）
+ */
+export const NO_SHOW_REASON_OPTIONS = [
+  { code: 'better_offer', label: '有更好的 Offer' },
+  { code: 'family', label: '家庭原因' },
+  { code: 'health', label: '健康原因' },
+  { code: 'location', label: '异地搬迁困难' },
+  { code: 'original_retention', label: '被原公司挽留' },
+  { code: 'no_reason', label: '无故失联' },
+  { code: 'other', label: '其他' }
+] as const
 
 /**
  * 入职衔接列表查询参数

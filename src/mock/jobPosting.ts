@@ -6,6 +6,10 @@ const initialData: JobPosting[] = [
   {
     id: 1,
     jobNo: 'JOB202604001',
+    demandId: 1,
+    demandNo: 'RD202604001',
+    publisherId: 3,
+    publisherName: '张HR',
     jobTitle: '前端开发工程师',
     departmentName: '技术部',
     recruitCount: 2,
@@ -101,6 +105,10 @@ const initialData: JobPosting[] = [
   {
     id: 6,
     jobNo: 'JOB202604006',
+    demandId: 6,
+    demandNo: 'RD202604006',
+    publisherId: 3,
+    publisherName: '张HR',
     jobTitle: '测试工程师',
     departmentName: '技术部',
     recruitCount: 2,
@@ -292,5 +300,5 @@ const initialData: JobPosting[] = [
 
 // 创建 CRUD Mock
 export const jobPostingMock = createCrudMock<JobPosting>(initialData, {
-  searchFields: ['jobNo', 'jobTitle', 'departmentName']
+  searchFields: ['jobNo', 'jobTitle', 'departmentName', 'demandNo']
 })

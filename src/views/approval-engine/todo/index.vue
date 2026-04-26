@@ -357,7 +357,7 @@ const handleApprove = (row: TodoItem) => {
 
 // 查看详情
 const handleView = (row: TodoItem) => {
-  router.push(`/approval-engine/instance/detail/${row.instanceId}`)
+  router.push(`/system/approval-instance/detail/${row.instanceId}`)
 }
 
 // 转交

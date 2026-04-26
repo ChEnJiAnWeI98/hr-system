@@ -1,37 +1,32 @@
 import { AppRouteRecord } from '@/types/router'
-import { workspaceRoutes } from './workspace'
-import { organizationManagementRoutes } from './organization-management'
-import { employeeRoutes } from './employee'
-import { attendanceRoutes } from './attendance'
-import { leaveRoutes } from './leave'
-import { salaryRoutes } from './salary'
-import { socialSecurityRoutes } from './social-security'
-import { performanceRoutes } from './performance'
-import { recruitmentRoutes } from './recruitment'
-import { trainingRoutes } from './training'
-import { employeeSelfServiceRoutes } from './employee-self-service'
-import { approvalEngineRoutes } from './approval-engine'
-import { dataReportRoutes } from './data-report'
-import { systemRoutes } from './system'
-import { contractRoutes } from './contract'
+
+// ========== V2.0 重构后的一级菜单 ==========
+import { workspaceRoutes } from './workspace' // 工作台（特殊一级）
+import { orgRoutes } from './org' // 01 组织管理（拆自 hrm）
+import { employeeRoutes } from './employee' // 02 员工管理（拆自 hrm）
+import { contractRoutes } from './contract' // 03 合同管理（拆自 hrm）
+import { recruitRoutes } from './recruit' // 04 招聘管理
+import { attendanceRoutes } from './attendance' // 05 考勤与假期
+import { compRoutes } from './comp' // 06 薪酬管理
+import { socialRoutes } from './social' // 07 社保公积金
+import { perfRoutes } from './perf' // 08 绩效管理
+import { talentRoutes } from './talent' // 09 人才发展
+import { trainingRoutes } from './training' // 10 培训管理
+import { insightRoutes } from './insight' // 11 数据洞察
+import { systemRoutes } from './system' // 12 系统管理
 
 export const routeModules: AppRouteRecord[] = [
   workspaceRoutes,
-  organizationManagementRoutes,
+  orgRoutes,
   employeeRoutes,
   contractRoutes,
+  recruitRoutes,
   attendanceRoutes,
-  leaveRoutes,
-  salaryRoutes,
-  socialSecurityRoutes,
-  performanceRoutes,
-  recruitmentRoutes,
+  compRoutes,
+  socialRoutes,
+  perfRoutes,
+  talentRoutes,
   trainingRoutes,
-  employeeSelfServiceRoutes,
-  approvalEngineRoutes,
-  dataReportRoutes,
+  insightRoutes,
   systemRoutes
 ]
-
-
-

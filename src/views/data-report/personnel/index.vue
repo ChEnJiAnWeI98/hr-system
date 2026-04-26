@@ -1,5 +1,19 @@
 <template>
   <div class="page-container">
+    <!-- AI 洞察入口 -->
+    <el-card class="ai-insight-banner">
+      <div class="ai-banner-left">
+        <span class="ai-banner-icon">⚠️</span>
+        <div>
+          <div class="ai-banner-title">AI 洞察 · 高风险员工预警</div>
+          <div class="ai-banner-desc">基于目标停滞/360 分下滑/协作活跃度 多维信号，识别离职、绩效、心理异常风险员工</div>
+        </div>
+      </div>
+      <el-button type="primary" @click="aiRiskAlertVisible = true">
+        识别高风险员工
+      </el-button>
+    </el-card>
+
     <!-- 筛选卡片 -->
     <el-card class="filter-card">
       <el-form :model="queryParams">
@@ -73,11 +87,23 @@
       </template>
       <div ref="chartRef" class="chart-container"></div>
     </el-card>
+
+    <!-- AI 高风险员工预警（诊断模式）-->
+    <AIAssistDialog
+      v-model="aiRiskAlertVisible"
+      ability-code="risk_alert"
+      mode="diagnose"
+      initial-input="输入范围：当前筛选条件下的员工，近 8 周数据"
+      dialog-width="720px"
+      dialog-title="高风险员工预警 · AI 分析"
+      input-label="分析范围"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import AIAssistDialog from '@/components/business/AIAssistDialog.vue'
 import { Download } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
@@ -103,6 +129,7 @@ const dateRange = ref<[string, string] | null>(null)
 
 // 图表实例
 const chartRef = ref<HTMLElement>()
+const aiRiskAlertVisible = ref(false)
 let chartInstance: echarts.ECharts | null = null
 
 // 图表标题
@@ -428,6 +455,43 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
+.ai-insight-banner {
+  flex-shrink: 0;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0d3 100%);
+
+  :deep(.el-card__body) {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .ai-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .ai-banner-icon {
+    font-size: 28px;
+  }
+
+  .ai-banner-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .ai-banner-desc {
+    font-size: 12px;
+    color: #606266;
+    margin-top: 2px;
+  }
+}
+
 .page-container {
   height: 100%;
   display: flex;

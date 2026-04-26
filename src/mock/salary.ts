@@ -1,5 +1,6 @@
 // @ts-nocheck
 import type { SalaryAdjustment, SalaryAdjustmentListParams, SalaryRecord, SalaryRecordListParams } from '@/types/salary'
+import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
 
 // 调薪类型映射
 const adjustmentTypeMap: Record<number, string> = {
@@ -2175,6 +2176,12 @@ let salaryAdjustments: SalaryAdjustment[] = [
     updateTime: '2023-09-25 15:00:00'
   }
 ]
+
+// Wave 2 补丁：调薪 mock 对齐员工池（之前漏做）
+// 过滤条件：只对齐到在职员工（regular/probation），避免分配到 terminated
+salaryAdjustments = alignEmployeeFields(salaryAdjustments, {
+  filter: (e) => e.status === 'regular' || e.status === 'probation'
+})
 
 let nextId = 16
 

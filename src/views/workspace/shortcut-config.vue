@@ -98,20 +98,20 @@ defineOptions({
 
 const router = useRouter()
 
-// 所有可用功能
+// 所有可用功能（Wave 3：对齐 V2.0 终态菜单）
 const allFunctions = [
-  { id: 1, name: '组织管理', icon: '&#xe88a;', path: '/organization-template' },
-  { id: 2, name: '员工管理', icon: '&#xe88b;', path: '/employee/profile' },
-  { id: 3, name: '合同管理', icon: '&#xe88c;', path: '/contract/list' },
-  { id: 4, name: '考勤管理', icon: '&#xe88d;', path: '/attendance/record' },
-  { id: 5, name: '假勤管理', icon: '&#xe88e;', path: '/leave/application' },
-  { id: 6, name: '薪酬管理', icon: '&#xe88f;', path: '/salary/list' },
-  { id: 7, name: '绩效管理', icon: '&#xe890;', path: '/performance/evaluation' },
-  { id: 8, name: '招聘管理', icon: '&#xe891;', path: '/recruitment/position' },
-  { id: 9, name: '培训管理', icon: '&#xe892;', path: '/training/course' },
-  { id: 10, name: '社保管理', icon: '&#xe893;', path: '/social-security/list' },
-  { id: 11, name: '审批流', icon: '&#xe894;', path: '/approval/list' },
-  { id: 12, name: '系统管理', icon: '&#xe895;', path: '/permission-template' }
+  { id: 1, name: '组织架构', icon: '&#xe88a;', path: '/org/organization' },
+  { id: 2, name: '员工档案', icon: '&#xe88b;', path: '/employee/profile' },
+  { id: 3, name: '合同列表', icon: '&#xe88c;', path: '/contract/list' },
+  { id: 4, name: '考勤记录', icon: '&#xe88d;', path: '/attendance/record' },
+  { id: 5, name: '请假申请', icon: '&#xe88e;', path: '/attendance/leave-application' },
+  { id: 6, name: '薪酬带宽', icon: '&#xe88f;', path: '/comp/structure' },
+  { id: 7, name: '绩效评估', icon: '&#xe890;', path: '/perf/evaluation' },
+  { id: 8, name: '招聘需求', icon: '&#xe891;', path: '/recruit/demand' },
+  { id: 9, name: '培训计划', icon: '&#xe892;', path: '/training/plan' },
+  { id: 10, name: '社保公积金', icon: '&#xe893;', path: '/social/employee' },
+  { id: 11, name: '审批待办', icon: '&#xe894;', path: '/system/approval-todo' },
+  { id: 12, name: '用户账号', icon: '&#xe895;', path: '/system/user-account' }
 ]
 
 // 当前快捷入口列表

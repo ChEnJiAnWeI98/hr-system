@@ -1,47 +1,75 @@
 <template>
-  <div class="training-course-container">
+  <div class="course-container">
     <!-- 筛选卡片 -->
     <el-card class="filter-card">
       <el-form :model="queryParams">
         <div class="filter-form-content">
           <el-form-item label="课程编号">
-            <el-input v-model="queryParams.courseNo" placeholder="请输入课程编号" style="width: 200px" clearable />
+            <el-input
+              v-model="queryParams.courseCode"
+              placeholder="请输入课程编号"
+              style="width: 200px"
+              clearable
+            />
           </el-form-item>
 
           <el-form-item label="课程名称">
-            <el-input v-model="queryParams.courseName" placeholder="请输入课程名称" style="width: 200px" clearable />
+            <el-input
+              v-model="queryParams.courseName"
+              placeholder="请输入课程名称"
+              style="width: 200px"
+              clearable
+            />
           </el-form-item>
 
-          <el-form-item label="课程类型">
-            <el-select v-model="queryParams.courseType" placeholder="请选择课程类型" style="width: 150px" clearable>
-              <el-option label="内部课程" :value="1" />
-              <el-option label="外部课程" :value="2" />
+          <el-form-item label="课程分类">
+            <el-select
+              v-model="queryParams.category"
+              placeholder="请选择"
+              style="width: 150px"
+              clearable
+            >
+              <el-option
+                v-for="(label, key) in COURSE_CATEGORY_LABEL"
+                :key="key"
+                :label="label"
+                :value="key"
+              />
             </el-select>
           </el-form-item>
 
-          <el-form-item label="分类">
-            <el-input v-model="queryParams.category" placeholder="请输入分类" style="width: 150px" clearable />
-          </el-form-item>
-
-          <el-form-item label="讲师">
-            <el-input v-model="queryParams.instructor" placeholder="请输入讲师" style="width: 150px" clearable />
+          <el-form-item label="交付方式">
+            <el-select
+              v-model="queryParams.deliveryMode"
+              placeholder="请选择"
+              style="width: 120px"
+              clearable
+            >
+              <el-option
+                v-for="(label, key) in DELIVERY_MODE_LABEL"
+                :key="key"
+                :label="label"
+                :value="key"
+              />
+            </el-select>
           </el-form-item>
 
           <el-form-item label="状态">
-            <el-select v-model="queryParams.status" placeholder="请选择状态" style="width: 150px" clearable>
-              <el-option label="启用" :value="1" />
-              <el-option label="停用" :value="2" />
+            <el-select
+              v-model="queryParams.status"
+              placeholder="请选择"
+              style="width: 120px"
+              clearable
+            >
+              <el-option label="已上架" :value="1" />
+              <el-option label="未上架" :value="0" />
             </el-select>
           </el-form-item>
 
           <el-form-item label=" ">
             <div class="filter-buttons">
-              <el-button type="primary" @click="handleSearch">
-                搜索
-              </el-button>
-              <el-button @click="handleReset">
-                重置
-              </el-button>
+              <el-button type="primary" @click="handleSearch">搜索</el-button>
+              <el-button @click="handleReset">重置</el-button>
             </div>
           </el-form-item>
         </div>
@@ -56,7 +84,11 @@
             <el-icon><Plus /></el-icon>
             新增课程
           </el-button>
-          <el-button type="danger" :disabled="selectedIds.length === 0" @click="handleBatchDelete">
+          <el-button
+            type="danger"
+            :disabled="selectedIds.length === 0"
+            @click="handleBatchDelete"
+          >
             批量删除
           </el-button>
         </div>
@@ -69,37 +101,43 @@
           style="width: 100%"
           @selection-change="handleSelectionChange"
         >
-          <el-table-column type="selection" min-width="5%" />
-          <el-table-column prop="courseNo" label="课程编号" min-width="10%" />
-          <el-table-column prop="courseName" label="课程名称" min-width="15%" />
-          <el-table-column prop="courseType" label="课程类型" min-width="10%">
+          <el-table-column type="selection" width="50" />
+          <el-table-column prop="courseCode" label="课程编号" width="130" />
+          <el-table-column prop="courseName" label="课程名称" min-width="220" show-overflow-tooltip />
+          <el-table-column label="分类" width="110" align="center">
             <template #default="{ row }">
-              <el-tag v-if="row.courseType === 1" type="primary">内部课程</el-tag>
-              <el-tag v-else-if="row.courseType === 2" type="success">外部课程</el-tag>
+              <el-tag :type="COURSE_CATEGORY_TYPE[row.category as CourseCategory]" size="small">
+                {{ COURSE_CATEGORY_LABEL[row.category as CourseCategory] }}
+              </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="category" label="分类" min-width="10%" />
-          <el-table-column prop="instructor" label="讲师" min-width="10%" />
-          <el-table-column prop="duration" label="学时" min-width="8%" />
-          <el-table-column prop="capacity" label="容纳人数" min-width="10%" />
-          <el-table-column prop="credits" label="学分" min-width="8%" />
-          <el-table-column prop="status" label="状态" min-width="8%">
+          <el-table-column prop="instructorName" label="讲师" width="100" />
+          <el-table-column label="课时" width="80" align="center">
+            <template #default="{ row }">{{ row.duration }}h</template>
+          </el-table-column>
+          <el-table-column label="参考费用" width="110" align="right">
             <template #default="{ row }">
-              <el-tag v-if="row.status === 1" type="success">启用</el-tag>
-              <el-tag v-else-if="row.status === 2" type="info">停用</el-tag>
+              <span v-if="row.cost > 0">¥{{ row.cost.toLocaleString() }}</span>
+              <span v-else style="color: #67c23a">免费</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" min-width="15%" fixed="right">
+          <el-table-column label="交付方式" width="90" align="center">
             <template #default="{ row }">
-              <el-button link @click="handleView(row)">
-                查看详情
-              </el-button>
-              <el-button link @click="handleEdit(row)">
-                编辑
-              </el-button>
-              <el-button link type="danger" @click="handleDelete(row)">
-                删除
-              </el-button>
+              {{ DELIVERY_MODE_LABEL[row.deliveryMode as CourseDeliveryMode] }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="targetAudience" label="目标学员" min-width="180" show-overflow-tooltip />
+          <el-table-column label="状态" width="90" align="center">
+            <template #default="{ row }">
+              <el-tag v-if="row.status === 1" type="success" size="small">已上架</el-tag>
+              <el-tag v-else type="info" size="small">未上架</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="180" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" @click="handleView(row)">详情</el-button>
+              <el-button link @click="handleEdit(row)">编辑</el-button>
+              <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -120,63 +158,62 @@
     <el-dialog
       v-model="dialogVisible"
       :title="dialogTitle"
-      width="600px"
+      width="700px"
       :close-on-click-modal="false"
     >
-      <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="formRules"
-        label-width="100px"
-      >
-        <el-form-item label="课程编号" prop="courseNo">
-          <el-input v-model="formData.courseNo" placeholder="请输入课程编号" />
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="110px">
+        <el-form-item label="课程编号" prop="courseCode">
+          <el-input v-model="formData.courseCode" placeholder="如 COURSE-013" />
         </el-form-item>
-
         <el-form-item label="课程名称" prop="courseName">
           <el-input v-model="formData.courseName" placeholder="请输入课程名称" />
         </el-form-item>
-
-        <el-form-item label="课程类型" prop="courseType">
-          <el-select v-model="formData.courseType" placeholder="请选择课程类型" style="width: 100%">
-            <el-option label="内部课程" :value="1" />
-            <el-option label="外部课程" :value="2" />
+        <el-form-item label="课程分类" prop="category">
+          <el-select v-model="formData.category" placeholder="请选择" style="width: 100%">
+            <el-option
+              v-for="(label, key) in COURSE_CATEGORY_LABEL"
+              :key="key"
+              :label="label"
+              :value="key"
+            />
           </el-select>
         </el-form-item>
-
-        <el-form-item label="分类" prop="category">
-          <el-input v-model="formData.category" placeholder="请输入分类" />
+        <el-form-item label="交付方式" prop="deliveryMode">
+          <el-radio-group v-model="formData.deliveryMode">
+            <el-radio
+              v-for="(label, key) in DELIVERY_MODE_LABEL"
+              :key="key"
+              :value="key"
+            >
+              {{ label }}
+            </el-radio>
+          </el-radio-group>
         </el-form-item>
-
-        <el-form-item label="讲师" prop="instructor">
-          <el-input v-model="formData.instructor" placeholder="请输入讲师" />
+        <el-form-item label="讲师" prop="instructorName">
+          <el-input v-model="formData.instructorName" placeholder="讲师姓名" />
         </el-form-item>
-
-        <el-form-item label="学时" prop="duration">
-          <el-input v-model="formData.duration" placeholder="请输入学时" />
+        <el-form-item label="课时（h）" prop="duration">
+          <el-input v-model.number="formData.duration" placeholder="如 16" />
         </el-form-item>
-
-        <el-form-item label="容纳人数" prop="capacity">
-          <el-input v-model="formData.capacity" placeholder="请输入容纳人数" />
+        <el-form-item label="参考费用" prop="cost">
+          <el-input v-model.number="formData.cost" placeholder="单位：元" />
         </el-form-item>
-
-        <el-form-item label="学分" prop="credits">
-          <el-input v-model="formData.credits" placeholder="请输入学分" />
+        <el-form-item label="目标学员" prop="targetAudience">
+          <el-input v-model="formData.targetAudience" placeholder="如 技术族 P4~P6" />
         </el-form-item>
-
+        <el-form-item label="课程介绍" prop="description">
+          <el-input v-model="formData.description" type="textarea" :rows="3" />
+        </el-form-item>
+        <el-form-item label="学习目标" prop="objectives">
+          <el-input v-model="formData.objectives" type="textarea" :rows="2" />
+        </el-form-item>
         <el-form-item label="状态" prop="status">
-          <el-select v-model="formData.status" placeholder="请选择状态" style="width: 100%">
-            <el-option label="启用" :value="1" />
-            <el-option label="停用" :value="2" />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="课程简介" prop="description">
-          <el-input
-            v-model="formData.description"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入课程简介"
+          <el-switch
+            v-model="formData.status"
+            :active-value="1"
+            :inactive-value="0"
+            active-text="上架"
+            inactive-text="下架"
           />
         </el-form-item>
       </el-form>
@@ -188,35 +225,38 @@
     </el-dialog>
 
     <!-- 详情弹窗 -->
-    <el-dialog
-      v-model="detailVisible"
-      title="课程详情"
-      width="600px"
-    >
+    <el-dialog v-model="detailVisible" title="课程详情" width="720px">
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="课程编号">{{ detailData.courseNo }}</el-descriptions-item>
+        <el-descriptions-item label="课程编号">{{ detailData.courseCode }}</el-descriptions-item>
         <el-descriptions-item label="课程名称">{{ detailData.courseName }}</el-descriptions-item>
-        <el-descriptions-item label="课程类型">
-          <el-tag v-if="detailData.courseType === 1" type="primary">内部课程</el-tag>
-          <el-tag v-else-if="detailData.courseType === 2" type="success">外部课程</el-tag>
+        <el-descriptions-item label="分类">
+          <el-tag
+            v-if="detailData.category"
+            :type="COURSE_CATEGORY_TYPE[detailData.category as CourseCategory]"
+            size="small"
+          >
+            {{ COURSE_CATEGORY_LABEL[detailData.category as CourseCategory] }}
+          </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="分类">{{ detailData.category }}</el-descriptions-item>
-        <el-descriptions-item label="讲师">{{ detailData.instructor }}</el-descriptions-item>
-        <el-descriptions-item label="学时">{{ detailData.duration }}</el-descriptions-item>
-        <el-descriptions-item label="容纳人数">{{ detailData.capacity }}</el-descriptions-item>
-        <el-descriptions-item label="学分">{{ detailData.credits }}</el-descriptions-item>
+        <el-descriptions-item label="交付方式">
+          {{ detailData.deliveryMode ? DELIVERY_MODE_LABEL[detailData.deliveryMode as CourseDeliveryMode] : '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="讲师">{{ detailData.instructorName }}</el-descriptions-item>
+        <el-descriptions-item label="课时">{{ detailData.duration }} 小时</el-descriptions-item>
+        <el-descriptions-item label="参考费用">
+          <span v-if="detailData.cost && detailData.cost > 0">¥{{ detailData.cost.toLocaleString() }}</span>
+          <span v-else>免费</span>
+        </el-descriptions-item>
         <el-descriptions-item label="状态">
-          <el-tag v-if="detailData.status === 1" type="success">启用</el-tag>
-          <el-tag v-else-if="detailData.status === 2" type="info">停用</el-tag>
+          <el-tag v-if="detailData.status === 1" type="success" size="small">已上架</el-tag>
+          <el-tag v-else type="info" size="small">未上架</el-tag>
         </el-descriptions-item>
+        <el-descriptions-item label="目标学员" :span="2">{{ detailData.targetAudience }}</el-descriptions-item>
+        <el-descriptions-item label="课程介绍" :span="2">{{ detailData.description }}</el-descriptions-item>
+        <el-descriptions-item label="学习目标" :span="2">{{ detailData.objectives }}</el-descriptions-item>
+        <el-descriptions-item label="创建人">{{ detailData.createdBy }}</el-descriptions-item>
         <el-descriptions-item label="创建时间">{{ detailData.createTime }}</el-descriptions-item>
-        <el-descriptions-item label="更新时间" :span="2">{{ detailData.updateTime }}</el-descriptions-item>
-        <el-descriptions-item label="课程简介" :span="2">{{ detailData.description }}</el-descriptions-item>
       </el-descriptions>
-
-      <template #footer>
-        <el-button @click="detailVisible = false">关闭</el-button>
-      </template>
     </el-dialog>
   </div>
 </template>
@@ -225,238 +265,177 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import type { TrainingCourse, TrainingCourseListParams } from '@/types/training'
 import {
-  getTrainingCourseList,
-  getTrainingCourseDetail,
-  addTrainingCourse,
-  updateTrainingCourse,
-  removeTrainingCourse
-} from '@/api/trainingCourse'
+  getCourseList,
+  addCourse,
+  updateCourse,
+  deleteCourse,
+  batchDeleteCourse
+} from '@/api/training'
+import type { Course, CourseCategory, CourseDeliveryMode } from '@/types/training'
+import {
+  COURSE_CATEGORY_LABEL,
+  COURSE_CATEGORY_TYPE,
+  DELIVERY_MODE_LABEL
+} from '@/types/training'
 
-defineOptions({
-  name: 'TrainingCourse'
-})
+defineOptions({ name: 'TrainingCourse' })
 
-// 查询参数
-const queryParams = reactive<TrainingCourseListParams>({
-  courseNo: '',
+const queryParams = reactive<{
+  courseCode?: string
+  courseName?: string
+  category?: CourseCategory | ''
+  deliveryMode?: CourseDeliveryMode | ''
+  status?: number | null
+  page: number
+  pageSize: number
+}>({
+  courseCode: '',
   courseName: '',
-  courseType: null,
   category: '',
-  instructor: '',
+  deliveryMode: '',
   status: null,
   page: 1,
   pageSize: 10
 })
 
-// 表格数据
-const tableData = ref<TrainingCourse[]>([])
+const tableData = ref<Course[]>([])
 const total = ref(0)
 const selectedIds = ref<number[]>([])
 
-// 弹窗相关
 const dialogVisible = ref(false)
 const dialogTitle = ref('')
 const formRef = ref<FormInstance>()
-const formData = reactive<Partial<TrainingCourse>>({
-  courseNo: '',
+const emptyForm = (): Partial<Course> => ({
+  courseCode: '',
   courseName: '',
-  courseType: 1,
-  category: '',
-  instructor: '',
-  duration: 0,
-  capacity: 0,
-  credits: 0,
+  category: 'general',
+  instructorName: '',
+  duration: 8,
+  cost: 0,
+  deliveryMode: 'offline',
+  targetAudience: '',
+  description: '',
+  objectives: '',
   status: 1,
-  description: ''
+  createdBy: 'HR 培训组'
 })
+const formData = reactive<Partial<Course>>(emptyForm())
 
-// 表单验证规则
 const formRules: FormRules = {
-  courseNo: [{ required: true, message: '请输入课程编号', trigger: 'blur' }],
+  courseCode: [{ required: true, message: '请输入课程编号', trigger: 'blur' }],
   courseName: [{ required: true, message: '请输入课程名称', trigger: 'blur' }],
-  courseType: [{ required: true, message: '请选择课程类型', trigger: 'change' }],
-  category: [{ required: true, message: '请输入分类', trigger: 'blur' }],
-  instructor: [{ required: true, message: '请输入讲师', trigger: 'blur' }],
-  duration: [{ required: true, message: '请输入学时', trigger: 'blur' }],
-  capacity: [{ required: true, message: '请输入容纳人数', trigger: 'blur' }],
-  credits: [{ required: true, message: '请输入学分', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }]
+  category: [{ required: true, message: '请选择分类', trigger: 'change' }],
+  deliveryMode: [{ required: true, message: '请选择交付方式', trigger: 'change' }],
+  instructorName: [{ required: true, message: '请输入讲师姓名', trigger: 'blur' }],
+  duration: [{ required: true, message: '请输入课时', trigger: 'blur' }],
+  targetAudience: [{ required: true, message: '请输入目标学员', trigger: 'blur' }]
 }
 
-// 详情弹窗
 const detailVisible = ref(false)
-const detailData = ref<Partial<TrainingCourse>>({})
+const detailData = ref<Partial<Course>>({})
 
-/**
- * 获取列表数据
- */
-const getList = async () => {
+const fetchData = async () => {
   try {
-    const res = await getTrainingCourseList(queryParams)
-    if (res.code === 200) {
-      tableData.value = res.data.list
-      total.value = res.data.total
-    }
-  } catch (error) {
-    ElMessage.error('获取列表失败')
+    const res: any = await getCourseList(queryParams)
+    tableData.value = res.data.list
+    total.value = res.data.total
+  } catch {
+    ElMessage.error('获取课程列表失败')
   }
 }
 
-/**
- * 搜索
- */
 const handleSearch = () => {
   queryParams.page = 1
-  getList()
+  fetchData()
 }
 
-/**
- * 重置
- */
 const handleReset = () => {
-  queryParams.courseNo = ''
-  queryParams.courseName = ''
-  queryParams.courseType = null
-  queryParams.category = ''
-  queryParams.instructor = ''
-  queryParams.status = null
-  queryParams.page = 1
-  getList()
+  Object.assign(queryParams, {
+    courseCode: '',
+    courseName: '',
+    category: '',
+    deliveryMode: '',
+    status: null,
+    page: 1,
+    pageSize: 10
+  })
+  fetchData()
 }
 
-/**
- * 表格选择变化
- */
-const handleSelectionChange = (selection: TrainingCourse[]) => {
-  selectedIds.value = selection.map(item => item.id)
-}
-
-/**
- * 新增
- */
 const handleAdd = () => {
   dialogTitle.value = '新增课程'
+  Object.assign(formData, emptyForm(), { id: undefined })
   dialogVisible.value = true
-  Object.assign(formData, {
-    id: undefined,
-    courseNo: '',
-    courseName: '',
-    courseType: 1,
-    category: '',
-    instructor: '',
-    duration: 0,
-    capacity: 0,
-    credits: 0,
-    status: 1,
-    description: ''
-  })
-  formRef.value?.clearValidate()
 }
 
-/**
- * 编辑
- */
-const handleEdit = async (row: TrainingCourse) => {
-  try {
-    const res = await getTrainingCourseDetail(row.id)
-    if (res.code === 200) {
-      dialogTitle.value = '编辑课程'
-      dialogVisible.value = true
-      Object.assign(formData, res.data)
-      formRef.value?.clearValidate()
-    }
-  } catch (error) {
-    ElMessage.error('获取详情失败')
-  }
+const handleEdit = (row: Course) => {
+  dialogTitle.value = '编辑课程'
+  Object.assign(formData, row)
+  dialogVisible.value = true
 }
 
-/**
- * 查看详情
- */
-const handleView = async (row: TrainingCourse) => {
-  try {
-    const res = await getTrainingCourseDetail(row.id)
-    if (res.code === 200) {
-      detailData.value = res.data
-      detailVisible.value = true
-    }
-  } catch (error) {
-    ElMessage.error('获取详情失败')
-  }
-}
-
-/**
- * 提交表单
- */
 const handleSubmit = async () => {
   if (!formRef.value) return
-
   await formRef.value.validate(async (valid) => {
-    if (valid) {
-      try {
-        if (formData.id) {
-          await updateTrainingCourse(formData as TrainingCourse)
-          ElMessage.success('更新成功')
-        } else {
-          await addTrainingCourse(formData)
-          ElMessage.success('新增成功')
-        }
-        dialogVisible.value = false
-        getList()
-      } catch (error) {
-        ElMessage.error(formData.id ? '更新失败' : '新增失败')
+    if (!valid) return
+    try {
+      if (formData.id) {
+        await updateCourse(formData as Course)
+        ElMessage.success('更新成功')
+      } else {
+        await addCourse(formData as Course)
+        ElMessage.success('新增成功')
       }
+      dialogVisible.value = false
+      fetchData()
+    } catch {
+      ElMessage.error('操作失败')
     }
   })
 }
 
-/**
- * 删除
- */
-const handleDelete = (row: TrainingCourse) => {
-  ElMessageBox.confirm('确定要删除该课程吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(async () => {
-    try {
-      await removeTrainingCourse?.(row.id)
-      ElMessage.success('删除成功')
-      getList()
-    } catch (error) {
-      ElMessage.error('删除失败')
-    }
-  })
+const handleDelete = async (row: Course) => {
+  try {
+    await ElMessageBox.confirm(`确定删除课程「${row.courseName}」？`, '提示', {
+      type: 'warning'
+    })
+    await deleteCourse(row.id)
+    ElMessage.success('删除成功')
+    fetchData()
+  } catch (e) {
+    if (e !== 'cancel') ElMessage.error('删除失败')
+  }
 }
 
-/**
- * 批量删除
- */
-const handleBatchDelete = () => {
-  ElMessageBox.confirm(`确定要删除选中的 ${selectedIds.value.length} 条数据吗？`, '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(async () => {
-    try {
-      await Promise.all(selectedIds.value.map(id => removeTrainingCourse?.(id)))
-      ElMessage.success('批量删除成功')
-      getList()
-    } catch (error) {
-      ElMessage.error('批量删除失败')
-    }
-  })
+const handleBatchDelete = async () => {
+  try {
+    await ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 门课程？`, '提示', {
+      type: 'warning'
+    })
+    await batchDeleteCourse(selectedIds.value)
+    ElMessage.success('删除成功')
+    selectedIds.value = []
+    fetchData()
+  } catch (e) {
+    if (e !== 'cancel') ElMessage.error('删除失败')
+  }
 }
 
-onMounted(() => {
-  getList()
-})
+const handleView = (row: Course) => {
+  detailData.value = row
+  detailVisible.value = true
+}
+
+const handleSelectionChange = (selection: Course[]) => {
+  selectedIds.value = selection.map((s) => s.id)
+}
+
+onMounted(fetchData)
 </script>
 
 <style scoped lang="scss">
-.training-course-container {
+.course-container {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -531,7 +510,6 @@ onMounted(() => {
     flex-shrink: 0;
     justify-content: flex-end;
     margin-top: 16px;
-    justify-content: flex-end;
   }
 }
 </style>

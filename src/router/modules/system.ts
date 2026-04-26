@@ -20,7 +20,8 @@ export const systemRoutes: AppRouteRecord = {
       component: () => import('@/views/system/user-account/index.vue'),
       meta: {
         title: 'menus.system.userAccount',
-        keepAlive: true
+        keepAlive: true,
+        menuCode: 'system:user'
       }
     },
     {
@@ -51,7 +52,8 @@ export const systemRoutes: AppRouteRecord = {
       component: () => import('@/views/system/role/index.vue'),
       meta: {
         title: 'menus.system.role',
-        keepAlive: true
+        keepAlive: true,
+        menuCode: 'system:role'
       }
     },
     {
@@ -93,7 +95,91 @@ export const systemRoutes: AppRouteRecord = {
       component: () => import('@/views/system/dictionary/index.vue'),
       meta: {
         title: 'menus.system.dictionary',
-        keepAlive: true
+        keepAlive: true,
+        menuCode: 'system:dictionary'
+      }
+    },
+    {
+      path: 'data-permission',
+      name: 'SystemDataPermission',
+      component: () => import('@/views/system/data-permission/index.vue'),
+      meta: {
+        title: 'menus.system.dataPermission',
+        keepAlive: true,
+        menuCode: 'system:data-permission'
+      }
+    },
+    // 审批流（从原 approval-engine 降级）
+    {
+      path: 'approval-template',
+      name: 'SystemApprovalTemplate',
+      component: () => import('@/views/approval-engine/template/index.vue'),
+      meta: {
+        title: 'menus.system.approvalTemplate',
+        keepAlive: true,
+        menuCode: 'system:approval'
+      }
+    },
+    {
+      path: 'approval-template/designer/:id?',
+      name: 'SystemApprovalTemplateDesigner',
+      component: () => import('@/views/approval-engine/template/designer.vue'),
+      meta: {
+        title: 'menus.system.approvalDesigner',
+        keepAlive: false,
+        isHide: true,
+        activePath: '/system/approval-template'
+      }
+    },
+    {
+      path: 'approval-instance',
+      name: 'SystemApprovalInstance',
+      component: () => import('@/views/approval-engine/instance/index.vue'),
+      meta: {
+        title: 'menus.system.approvalInstance',
+        keepAlive: true,
+        menuCode: 'system:approval'
+      }
+    },
+    {
+      path: 'approval-instance/detail/:id',
+      name: 'SystemApprovalInstanceDetail',
+      component: () => import('@/views/approval-engine/instance/detail.vue'),
+      meta: {
+        title: 'menus.system.approvalInstanceDetail',
+        keepAlive: false,
+        isHide: true,
+        activePath: '/system/approval-instance'
+      }
+    },
+    {
+      path: 'approval-todo',
+      name: 'SystemApprovalTodo',
+      component: () => import('@/views/approval-engine/todo/index.vue'),
+      meta: {
+        title: 'menus.system.approvalTodo',
+        keepAlive: true,
+        menuCode: 'system:approval'
+      }
+    },
+    {
+      path: 'approval-delegate',
+      name: 'SystemApprovalDelegate',
+      component: () => import('@/views/approval-engine/delegate/index.vue'),
+      meta: {
+        title: 'menus.system.approvalDelegate',
+        keepAlive: true,
+        menuCode: 'system:approval'
+      }
+    },
+    {
+      path: 'approval-statistics',
+      name: 'SystemApprovalStatistics',
+      component: () => import('@/views/approval-engine/statistics/index.vue'),
+      meta: {
+        title: 'menus.system.approvalStatistics',
+        keepAlive: true,
+        menuCode: 'system:approval'
       }
     },
     {
@@ -102,7 +188,18 @@ export const systemRoutes: AppRouteRecord = {
       component: () => import('@/views/system/operation-log/index.vue'),
       meta: {
         title: 'menus.system.operationLog',
-        keepAlive: true
+        keepAlive: true,
+        menuCode: 'system:log'
+      }
+    },
+    {
+      path: 'field-change-log',
+      name: 'SystemFieldChangeLog',
+      component: () => import('@/views/system/field-change-log/index.vue'),
+      meta: {
+        title: 'menus.system.fieldChangeLog',
+        keepAlive: true,
+        menuCode: 'system:field-change-log'
       }
     },
     {
@@ -111,7 +208,8 @@ export const systemRoutes: AppRouteRecord = {
       component: () => import('@/views/system/notification/index.vue'),
       meta: {
         title: 'menus.system.notification',
-        keepAlive: true
+        keepAlive: true,
+        menuCode: 'system:notification'
       }
     },
     {

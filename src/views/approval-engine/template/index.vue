@@ -365,7 +365,7 @@ const handleEdit = (row: ApprovalTemplate) => {
 
 // 设计流程
 const handleDesign = (row: ApprovalTemplate) => {
-  router.push(`/approval-engine/template/designer/${row.id}`)
+  router.push(`/system/approval-template/designer/${row.id}`)
 }
 
 // 复制

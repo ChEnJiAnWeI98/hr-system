@@ -138,41 +138,6 @@
       </template>
       <div ref="chartRef" class="chart-container"></div>
     </el-card>
-
-    <!-- 数据卡片 -->
-    <el-card class="data-card">
-      <template #header>
-        <div class="card-header">
-          <span>考勤异常明细</span>
-        </div>
-      </template>
-
-      <div class="table-container">
-        <el-table :data="tableData" height="100%">
-          <el-table-column prop="employeeName" label="员工姓名" min-width="10%" />
-          <el-table-column prop="exceptionType" label="异常类型" min-width="8%">
-            <template #default="{ row }">
-              <el-tag v-if="row.exceptionType === '迟到'" type="warning" size="small">迟到</el-tag>
-              <el-tag v-else-if="row.exceptionType === '早退'" type="danger" size="small">早退</el-tag>
-              <el-tag v-else-if="row.exceptionType === '缺勤'" type="info" size="small">缺勤</el-tag>
-              <el-tag v-else type="success" size="small">{{ row.exceptionType }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="exceptionDate" label="异常日期" min-width="10%" />
-          <el-table-column prop="exceptionRemark" label="异常说明" min-width="15%" />
-        </el-table>
-      </div>
-
-      <el-pagination
-        v-model:current-page="pagination.page"
-        v-model:page-size="pagination.pageSize"
-        :total="pagination.total"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="handleSearch"
-        @current-change="handleSearch"
-      />
-    </el-card>
   </div>
 </template>
 
@@ -380,10 +345,11 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .page-container {
-  height: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding-bottom: 20px;
 }
 
 .filter-card {
@@ -421,6 +387,14 @@ onBeforeUnmount(() => {
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   flex-shrink: 0;
+
+  @media (max-width: 1600px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .overview-card {
@@ -488,40 +462,6 @@ onBeforeUnmount(() => {
   .chart-container {
     width: 100%;
     height: 300px;
-  }
-}
-
-.data-card {
-  flex: 1;
-  border: none !important;
-  box-shadow: none !important;
-  border-radius: 12px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-
-  :deep(.el-card__body) {
-    padding: 20px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .card-header {
-    font-size: 16px;
-    font-weight: 600;
-    color: #303133;
-  }
-
-  .table-container {
-    flex: 1;
-    overflow: hidden;
-  }
-
-  .el-pagination {
-    flex-shrink: 0;
-    justify-content: flex-end;
-    margin-top: 16px;
   }
 }
 </style>

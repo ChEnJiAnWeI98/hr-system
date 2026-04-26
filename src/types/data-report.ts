@@ -21,11 +21,11 @@ export interface DashboardData {
   /** 离职人数 */
   resignedEmployees: number
   /** 平均司龄（年） */
-  avgSeniority: number
+  avgTenure: number
   /** 人员变化趋势 */
-  personnelTrend: TrendData[]
+  employeeTrend: TrendData[]
   /** 人力成本趋势 */
-  costTrend: CostTrendData[]
+  laborCostTrend: CostTrendData[]
 }
 
 /**
@@ -33,7 +33,7 @@ export interface DashboardData {
  */
 export interface TrendData {
   /** 月份 */
-  month: string
+  date: string
   /** 人数 */
   count: number
 }
@@ -43,7 +43,7 @@ export interface TrendData {
  */
 export interface CostTrendData {
   /** 月份 */
-  month: string
+  date: string
   /** 成本（元） */
   cost: number
 }
@@ -123,35 +123,127 @@ export interface SalaryDistribution {
 }
 
 /**
- * 招聘漏斗查询参数
+ * 招聘漏斗报表查询参数（V1.1 管理层快照版）
  */
 export interface RecruitmentFunnelParams {
-  /** 统计周期：month-月度/quarter-季度/year-年度 */
-  period: 'month' | 'quarter' | 'year'
+  /** 统计周期：month-月度/quarter-季度/year-年度/custom-自定义 */
+  period: 'month' | 'quarter' | 'year' | 'custom'
+  /** 开始日期（自定义时使用） */
+  startDate?: string
+  /** 结束日期（自定义时使用） */
+  endDate?: string
+  /** 对比模式：chain-环比（上周期）/ year-同比（去年同期）；默认 chain */
+  compareMode?: 'chain' | 'year'
+  /** 部门范围（可多选，不传则全公司） */
+  departmentIds?: number[]
 }
 
 /**
- * 招聘漏斗数据
+ * 漏斗单周期 5 阶段数据
  */
-export interface RecruitmentFunnelData {
+export interface FunnelStageData {
   /** 简历投递数 */
-  resumeReceived: number
-  /** 筛选通过数 */
+  resumeSubmitted: number
+  /** 初筛通过数 */
   resumeScreened: number
   /** 面试安排数 */
   interviewScheduled: number
-  /** Offer发放数 */
+  /** Offer 发放数 */
   offerSent: number
   /** 入职确认数 */
   onboarded: number
-  /** 筛选通过率（%） */
+  /** 初筛通过率（%） */
   screenRate: number
   /** 面试安排率（%） */
   interviewRate: number
-  /** Offer发放率（%） */
+  /** Offer 发放率（%） */
   offerRate: number
   /** 入职确认率（%） */
   onboardRate: number
+}
+
+/**
+ * 单个 KPI 指标（含本期、上期、环比变化）
+ */
+export interface KpiMetric {
+  /** 本期值 */
+  current: number
+  /** 上期值（对比期） */
+  previous: number
+  /**
+   * 变化率（%），正数表示上升，负数表示下降；
+   * previous 为 0 时返回 null
+   */
+  changeRate: number | null
+  /** 指标方向：positive-正向（越大越好）/ negative-负向（越小越好） */
+  direction: 'positive' | 'negative'
+}
+
+/**
+ * 月度趋势单个数据点
+ */
+export interface MonthlyTrendPoint {
+  /** 月份 YYYY-MM */
+  month: string
+  /** 月度入职人数 */
+  onboardedCount: number
+  /** 月度招聘完成率（%） */
+  fillRate: number
+}
+
+/**
+ * 渠道 TOP5 单项
+ */
+export interface ChannelTopRow {
+  /** 渠道名称 */
+  channel: string
+  /** 本期该渠道入职人数 */
+  onboardedCount: number
+  /** 占本期总入职数比例（%） */
+  percentage: number
+}
+
+/**
+ * 招聘漏斗报表数据（V1.1 管理层快照版）
+ *
+ * 对应需求说明书 16.3.1 招聘漏斗报表字段表五组：
+ * - 核心 KPI（6 个带环比）
+ * - 双周期漏斗（current + previous）
+ * - 月度趋势（近 6 个月）
+ * - 渠道 TOP5
+ */
+export interface RecruitmentFunnelData {
+  /** 统计周期起止（用于标题展示） */
+  periodLabel: string
+  /** 对比期起止（用于标题展示） */
+  previousPeriodLabel: string
+
+  /** 核心 KPI · 6 个指标 */
+  kpi: {
+    /** 本期入职人数 */
+    onboarded: KpiMetric
+    /** 总转化率（入职/投递）*/
+    totalConversion: KpiMetric
+    /** 平均招聘周期（天） */
+    avgTimeToHire: KpiMetric
+    /** Offer 接受率（%） */
+    offerAcceptRate: KpiMetric
+    /** 需求完成率（%） */
+    demandFillRate: KpiMetric
+    /** 单人招聘成本 CPH（元） */
+    cph: KpiMetric
+  }
+
+  /** 双周期漏斗：本期 */
+  funnelCurrent: FunnelStageData
+  /** 双周期漏斗：上期 */
+  funnelPrevious: FunnelStageData
+
+  /** 月度趋势（近 6 个月，最后一个月为当前周期月） */
+  monthlyTrend: MonthlyTrendPoint[]
+
+  /** 渠道贡献 TOP5（按入职人数降序）+ "其他"聚合项 */
+  channelTop5: ChannelTopRow[]
 }
 
 /**

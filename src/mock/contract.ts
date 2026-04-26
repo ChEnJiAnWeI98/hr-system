@@ -13,6 +13,10 @@ import type {
   ContractArchiveQueryParams,
   ContractStatistics
 } from '@/types/contract'
+// 🔐 Phase 2.10 员工池对齐
+import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
+// Wave 2 A 路线：合同由员工池动态生成（覆盖 200 员工 + 自动续签），与手写的 28 条样例合同合并
+import { POOL_CONTRACTS } from '@/mock/core/employeePool'
 
 // ==================== 合同模板 Mock 数据 ====================
 
@@ -371,7 +375,7 @@ let contracts: Contract[] = [
     content: '<h2>劳动合同</h2><p>甲方（用人单位）：某某科技有限公司</p><p>乙方（劳动者）：张三</p>...',
     signDate: '2024-01-15',
     startDate: '2024-01-15',
-    endDate: '2026-08-14',
+    endDate: '2026-05-10',
     probationPeriod: 3,
     workLocation: '北京市朝阳区',
     workContent: '负责前端开发工作',
@@ -420,7 +424,7 @@ let contracts: Contract[] = [
     content: '<h2>保密协议</h2><p>甲方（用人单位）：某某科技有限公司</p><p>乙方（员工）：王五</p>...',
     signDate: '2024-01-20',
     startDate: '2024-01-20',
-    endDate: '2026-08-19',
+    endDate: '2026-05-05',
     workLocation: '北京市朝阳区',
     workContent: '负责产品经理工作',
     salary: '月薪16000元',
@@ -692,17 +696,18 @@ let contracts: Contract[] = [
     content: '<h2>劳动合同</h2><p>甲方（用人单位）：某某科技有限公司</p><p>乙方（劳动者）：赵敏</p>...',
     signDate: '2022-07-10',
     startDate: '2022-07-10',
-    endDate: '2026-08-09',
+    endDate: '2023-05-14',
     probationPeriod: 3,
     workLocation: '深圳市南山区',
     workContent: '负责前端开发工作',
     salary: '月薪14000元',
-    status: 4,
+    status: 5,
     signMethod: 1,
     createBy: '系统管理员',
     createTime: '2022-07-10 09:00:00',
     updateBy: '系统管理员',
-    updateTime: '2022-07-10 09:00:00'
+    updateTime: '2023-05-14 16:00:00',
+    remark: '已续签，新合同编号：HT202401024'
   },
   {
     id: 15,
@@ -717,17 +722,18 @@ let contracts: Contract[] = [
     content: '<h2>劳动合同</h2><p>甲方（用人单位）：某某科技有限公司</p><p>乙方（劳动者）：孙杰</p>...',
     signDate: '2022-08-15',
     startDate: '2022-08-15',
-    endDate: '2026-08-14',
+    endDate: '2023-05-31',
     probationPeriod: 3,
     workLocation: '杭州市西湖区',
     workContent: '负责后端开发工作',
     salary: '月薪18000元',
-    status: 4,
+    status: 5,
     signMethod: 1,
     createBy: '系统管理员',
     createTime: '2022-08-15 09:00:00',
     updateBy: '系统管理员',
-    updateTime: '2022-08-15 09:00:00'
+    updateTime: '2023-05-31 16:00:00',
+    remark: '已续签，新合同编号：HT202401025'
   },
   {
     id: 16,
@@ -742,17 +748,18 @@ let contracts: Contract[] = [
     content: '<h2>劳动合同</h2><p>甲方（用人单位）：某某科技有限公司</p><p>乙方（劳动者）：周婷</p>...',
     signDate: '2022-09-20',
     startDate: '2022-09-20',
-    endDate: '2026-09-19',
+    endDate: '2023-07-09',
     probationPeriod: 3,
     workLocation: '南京市鼓楼区',
     workContent: '负责后端开发工作',
     salary: '月薪15000元',
-    status: 4,
+    status: 5,
     signMethod: 1,
     createBy: '系统管理员',
     createTime: '2022-09-20 09:00:00',
     updateBy: '系统管理员',
-    updateTime: '2022-09-20 09:00:00'
+    updateTime: '2023-07-09 16:00:00',
+    remark: '已续签，新合同编号：HT202401026'
   },
   {
     id: 17,
@@ -767,17 +774,18 @@ let contracts: Contract[] = [
     content: '<h2>劳动合同</h2><p>甲方（用人单位）：某某科技有限公司</p><p>乙方（劳动者）：吴磊</p>...',
     signDate: '2022-10-10',
     startDate: '2022-10-10',
-    endDate: '2026-10-09',
+    endDate: '2023-08-14',
     probationPeriod: 3,
     workLocation: '成都市武侯区',
     workContent: '负责产品经理工作',
     salary: '月薪16000元',
-    status: 4,
+    status: 5,
     signMethod: 1,
     createBy: '系统管理员',
     createTime: '2022-10-10 09:00:00',
     updateBy: '系统管理员',
-    updateTime: '2022-10-10 09:00:00'
+    updateTime: '2023-08-14 16:00:00',
+    remark: '已续签，新合同编号：HT202401027'
   },
   {
     id: 18,
@@ -792,17 +800,18 @@ let contracts: Contract[] = [
     content: '<h2>劳动合同</h2><p>甲方（用人单位）：某某科技有限公司</p><p>乙方（劳动者）：郑秀</p>...',
     signDate: '2022-11-15',
     startDate: '2022-11-15',
-    endDate: '2026-11-14',
+    endDate: '2023-09-19',
     probationPeriod: 3,
     workLocation: '武汉市武昌区',
     workContent: '负责产品经理工作',
     salary: '月薪15000元',
-    status: 4,
+    status: 5,
     signMethod: 1,
     createBy: '系统管理员',
     createTime: '2022-11-15 09:00:00',
     updateBy: '系统管理员',
-    updateTime: '2022-11-15 09:00:00'
+    updateTime: '2023-09-19 16:00:00',
+    remark: '已续签，新合同编号：HT202401028'
   },
   {
     id: 19,
@@ -932,10 +941,10 @@ let contracts: Contract[] = [
   {
     id: 24,
     contractNo: 'HT202401024',
-    employeeId: 24,
+    employeeId: 14,
     employeeName: '赵敏',
-    employeeNo: 'EMP024',
-    department: '市场部',
+    employeeNo: 'EMP014',
+    department: '技术部',
     type: 1,
     templateId: 1,
     templateName: '标准劳动合同模板',
@@ -944,23 +953,24 @@ let contracts: Contract[] = [
     startDate: '2023-05-15',
     endDate: '2026-05-14',
     probationPeriod: 3,
-    workLocation: '大连市中山区',
-    workContent: '负责市场专员工作',
-    salary: '月薪12000元',
+    workLocation: '深圳市南山区',
+    workContent: '负责前端开发工作',
+    salary: '月薪16000元',
     status: 4,
     signMethod: 1,
     createBy: '系统管理员',
     createTime: '2023-05-15 09:00:00',
     updateBy: '系统管理员',
-    updateTime: '2023-05-15 09:00:00'
+    updateTime: '2023-05-15 09:00:00',
+    remark: '续签合同，原合同编号：HT202401014'
   },
   {
     id: 25,
     contractNo: 'HT202401025',
-    employeeId: 25,
+    employeeId: 15,
     employeeName: '孙杰',
-    employeeNo: 'EMP025',
-    department: '销售部',
+    employeeNo: 'EMP015',
+    department: '技术部',
     type: 1,
     templateId: 1,
     templateName: '标准劳动合同模板',
@@ -969,23 +979,24 @@ let contracts: Contract[] = [
     startDate: '2023-06-01',
     endDate: '2026-05-31',
     probationPeriod: 3,
-    workLocation: '沈阳市和平区',
-    workContent: '负责销售管理工作',
-    salary: '月薪18000元',
+    workLocation: '杭州市西湖区',
+    workContent: '负责后端开发工作',
+    salary: '月薪20000元',
     status: 4,
     signMethod: 1,
     createBy: '系统管理员',
     createTime: '2023-06-01 09:00:00',
     updateBy: '系统管理员',
-    updateTime: '2023-06-01 09:00:00'
+    updateTime: '2023-06-01 09:00:00',
+    remark: '续签合同，原合同编号：HT202401015'
   },
   {
     id: 26,
     contractNo: 'HT202401026',
-    employeeId: 26,
+    employeeId: 16,
     employeeName: '周婷',
-    employeeNo: 'EMP026',
-    department: '销售部',
+    employeeNo: 'EMP016',
+    department: '后端组',
     type: 1,
     templateId: 1,
     templateName: '标准劳动合同模板',
@@ -994,23 +1005,24 @@ let contracts: Contract[] = [
     startDate: '2023-07-10',
     endDate: '2026-07-09',
     probationPeriod: 3,
-    workLocation: '哈尔滨市南岗区',
-    workContent: '负责销售专员工作',
-    salary: '月薪13000元',
+    workLocation: '南京市鼓楼区',
+    workContent: '负责后端开发工作',
+    salary: '月薪17000元',
     status: 4,
     signMethod: 1,
     createBy: '系统管理员',
     createTime: '2023-07-10 09:00:00',
     updateBy: '系统管理员',
-    updateTime: '2023-07-10 09:00:00'
+    updateTime: '2023-07-10 09:00:00',
+    remark: '续签合同，原合同编号：HT202401016'
   },
   {
     id: 27,
     contractNo: 'HT202401027',
-    employeeId: 27,
+    employeeId: 17,
     employeeName: '吴磊',
-    employeeNo: 'EMP027',
-    department: '客服部',
+    employeeNo: 'EMP017',
+    department: '产品部',
     type: 1,
     templateId: 1,
     templateName: '标准劳动合同模板',
@@ -1019,23 +1031,24 @@ let contracts: Contract[] = [
     startDate: '2023-08-15',
     endDate: '2026-08-14',
     probationPeriod: 3,
-    workLocation: '郑州市金水区',
-    workContent: '负责客服管理工作',
-    salary: '月薪15000元',
+    workLocation: '成都市武侯区',
+    workContent: '负责产品经理工作',
+    salary: '月薪18000元',
     status: 4,
     signMethod: 1,
     createBy: '系统管理员',
     createTime: '2023-08-15 09:00:00',
     updateBy: '系统管理员',
-    updateTime: '2023-08-15 09:00:00'
+    updateTime: '2023-08-15 09:00:00',
+    remark: '续签合同，原合同编号：HT202401017'
   },
   {
     id: 28,
     contractNo: 'HT202401028',
-    employeeId: 28,
+    employeeId: 18,
     employeeName: '郑秀',
-    employeeNo: 'EMP028',
-    department: '客服部',
+    employeeNo: 'EMP018',
+    department: '产品部',
     type: 1,
     templateId: 1,
     templateName: '标准劳动合同模板',
@@ -1044,19 +1057,40 @@ let contracts: Contract[] = [
     startDate: '2023-09-20',
     endDate: '2026-09-19',
     probationPeriod: 3,
-    workLocation: '济南市历下区',
-    workContent: '负责客服专员工作',
-    salary: '月薪11000元',
+    workLocation: '武汉市武昌区',
+    workContent: '负责产品经理工作',
+    salary: '月薪17000元',
     status: 4,
     signMethod: 1,
     createBy: '系统管理员',
     createTime: '2023-09-20 09:00:00',
     updateBy: '系统管理员',
-    updateTime: '2023-09-20 09:00:00'
+    updateTime: '2023-09-20 09:00:00',
+    remark: '续签合同，原合同编号：HT202401018'
   }
 ]
 
-let contractNextId = 29
+// 🔐 Phase 2.10 员工池对齐（合同数据里的 employeeName/department 等字段同步到 200 员工池）
+contracts = alignEmployeeFields(contracts)
+
+// Wave 2 A 路线：合并员工池生成的合同（已对齐，无需再跑 alignEmployeeFields）
+contracts = contracts.concat(POOL_CONTRACTS as unknown as Contract[])
+
+// Wave 2 修复（2026-04-23）：补齐 contractType 字段（字典值），历史手写合同也缺此字段
+// 规则：劳动合同类型（type=1）默认 'fixed' 固定期限；非劳动合同类型用对应字典值
+const TYPE_NUM_TO_CONTRACT_TYPE: Record<number, string> = {
+  1: 'fixed',      // 劳动合同 → 默认固定期限
+  2: 'labor',      // 保密协议 → 归到劳务协议字典项
+  3: 'labor',      // 竞业限制 → 归到劳务协议字典项
+  4: 'intern',     // 培训协议 → 归到实习协议字典项
+  5: 'labor'       // 其他 → 劳务协议
+}
+contracts = contracts.map((c) => ({
+  ...c,
+  contractType: (c as any).contractType || TYPE_NUM_TO_CONTRACT_TYPE[c.type] || 'fixed'
+}))
+
+let contractNextId = 1001 + POOL_CONTRACTS.length + 100 // 留 100 个缓冲，避免与池合同 id 冲突
 
 /**
  * 获取合同列表 Mock 函数
@@ -1355,6 +1389,9 @@ let archives: ContractArchive[] = [
   }
 ]
 
+// 🔐 Phase 2.10 员工池对齐
+archives = alignEmployeeFields(archives)
+
 let archiveNextId = 3
 
 /**
@@ -1577,6 +1614,7 @@ export function getExpiringContractsMock(days: number = 30) {
       const remainingDays = Math.ceil((endDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000))
       return {
         id: item.id,
+        contractNo: item.contractNo,
         employeeName: item.employeeName,
         employeeNo: item.employeeNo,
         department: item.department,
@@ -1587,3 +1625,14 @@ export function getExpiringContractsMock(days: number = 30) {
     })
     .sort((a, b) => a.remainingDays - b.remainingDays)
 }
+
+
+/**
+ * Phase 3.7 - 按员工 ID 获取合同历史
+ */
+export function getContractsByEmployeeMock(employeeId: number) {
+  return contracts
+    .filter((c) => c.employeeId === employeeId)
+    .sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''))
+}
+

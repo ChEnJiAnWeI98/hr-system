@@ -1,5 +1,6 @@
 import type { MakeupClockInApplication, MakeupClockInApplicationListParams } from '@/types/attendance'
 import { createCrudMock } from '@/utils/crud'
+import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
 
 // 补卡类型映射
 const makeupTypeMap: Record<number, string> = {
@@ -310,7 +311,7 @@ const initialData: MakeupClockInApplication[] = [
 ]
 
 // 创建 CRUD Mock
-const makeupClockInMock = createCrudMock<MakeupClockInApplication>(initialData, {
+const makeupClockInMock = createCrudMock<MakeupClockInApplication>(alignEmployeeFields(initialData), {
   searchFields: ['employeeCode', 'employeeName']
 })
 

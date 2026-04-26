@@ -1,5 +1,7 @@
 // @ts-nocheck
-import type { Interview, InterviewListParams } from '@/types/recruitment'
+import type { Interview, InterviewListParams, InterviewEvaluation } from '@/types/recruitment'
+// 🔐 Phase 2.10 员工池对齐
+import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
 
 // 数据存储
 let interviews: Interview[] = [
@@ -81,7 +83,25 @@ let interviews: Interview[] = [
   }
 ]
 
+// 🔐 Phase 2.10 员工池对齐
+// - 面试官字段叫 interviewer（不是 interviewerName）从管理族员工池取
+// - 候选人字段（candidateName）保持不变（候选人是外部人员，不属于员工池）
+interviews = alignEmployeeFields(interviews, {
+  // 跳过"候选人/员工名"相关字段，避免把候选人姓名覆盖掉
+  skipFields: ['employeeName', 'nameZh'],
+  roles: {
+    interviewer: { startIndex: 0, empField: 'nameZh', filter: (e) => e.jobFamily === 'MGMT' }
+  }
+})
+
 let nextId = 6
+
+/** 按候选人姓名查全部面试记录（候选人详情页 Timeline 用）*/
+export function getInterviewsByCandidateNameMock(name: string) {
+  return interviews
+    .filter((i) => i.candidateName === name)
+    .sort((a, b) => (a.round || 0) - (b.round || 0))
+}
 
 /**
  * 获取面试列表 Mock 函数
@@ -208,4 +228,106 @@ export function evaluateInterviewMock(data: { id: number; rating: number; evalua
     return interviews[index]
   }
   throw new Error('面试记录不存在')
+}
+
+// ============ Phase 2.2 新增：多人协同评价 Mock ============
+
+let interviewEvaluations: InterviewEvaluation[] = [
+  {
+    id: 1,
+    interviewId: 3,
+    interviewerId: 4,
+    interviewerName: '李经理',
+    dimensionScores: JSON.stringify([
+      { dimensionName: '专业能力', score: 4.5, maxScore: 5 },
+      { dimensionName: '沟通能力', score: 4.8, maxScore: 5 },
+      { dimensionName: '学习能力', score: 4, maxScore: 5 },
+      { dimensionName: '抗压能力', score: 4.2, maxScore: 5 },
+      { dimensionName: '文化匹配度', score: 4.6, maxScore: 5 }
+    ]),
+    totalScore: 88,
+    comment: '候选人专业能力扎实，表达清晰，主动推进项目的意愿强。强烈推荐。',
+    resultSuggestion: '强烈推荐',
+    submitted: true,
+    submitTime: '2026-04-06 16:00:00',
+    createTime: '2026-04-06 15:30:00',
+    updateTime: '2026-04-06 16:00:00'
+  },
+  {
+    id: 2,
+    interviewId: 3,
+    interviewerId: 1,
+    interviewerName: '超级管理员',
+    dimensionScores: JSON.stringify([
+      { dimensionName: '专业能力', score: 4, maxScore: 5 },
+      { dimensionName: '沟通能力', score: 4.5, maxScore: 5 },
+      { dimensionName: '学习能力', score: 4.2, maxScore: 5 },
+      { dimensionName: '抗压能力', score: 4, maxScore: 5 },
+      { dimensionName: '文化匹配度', score: 4.5, maxScore: 5 }
+    ]),
+    totalScore: 84,
+    comment: '综合素质较高，能胜任岗位要求。',
+    resultSuggestion: '通过',
+    submitted: true,
+    submitTime: '2026-04-06 16:10:00',
+    createTime: '2026-04-06 15:40:00',
+    updateTime: '2026-04-06 16:10:00'
+  }
+]
+let nextEvalId = 3
+
+/**
+ * 获取面试的所有评价（含他人评价，仅已提交的对他人可见）
+ */
+export function getInterviewEvaluationsMock(interviewId: number, currentUserId?: number): InterviewEvaluation[] {
+  return interviewEvaluations.filter((e) => {
+    if (e.interviewId !== interviewId) return false
+    // 本人的评价无论是否提交都可见；他人评价只有已提交才可见
+    if (e.interviewerId === currentUserId) return true
+    return e.submitted
+  })
+}
+
+/**
+ * 获取某个面试官的面试评价（如果有）
+ */
+export function getMyEvaluationMock(interviewId: number, interviewerId: number): InterviewEvaluation | null {
+  return interviewEvaluations.find((e) => e.interviewId === interviewId && e.interviewerId === interviewerId) || null
+}
+
+/**
+ * 保存评价（新增或更新）—— 草稿或提交
+ */
+export function saveInterviewEvaluationMock(
+  data: Partial<InterviewEvaluation>,
+  submit: boolean
+): InterviewEvaluation {
+  const existing = interviewEvaluations.find(
+    (e) => e.interviewId === data.interviewId && e.interviewerId === data.interviewerId
+  )
+  const now = new Date().toLocaleString('zh-CN')
+  if (existing) {
+    Object.assign(existing, data, {
+      submitted: submit || existing.submitted,
+      submitTime: submit ? now : existing.submitTime,
+      updateTime: now
+    })
+    return existing
+  }
+  const fresh: InterviewEvaluation = {
+    id: nextEvalId++,
+    interviewId: data.interviewId!,
+    interviewerId: data.interviewerId!,
+    interviewerName: data.interviewerName || '',
+    dimensionScores: data.dimensionScores || '[]',
+    totalScore: data.totalScore ?? 0,
+    comment: data.comment,
+    resultSuggestion: data.resultSuggestion || '待定',
+    submitted: submit,
+    submitTime: submit ? now : undefined,
+    createTime: now,
+    updateTime: now
+  }
+  interviewEvaluations.push(fresh)
+  return fresh
 }

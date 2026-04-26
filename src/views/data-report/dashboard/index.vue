@@ -409,10 +409,11 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .page-container {
-  height: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding-bottom: 20px;
 }
 
 .filter-card {
@@ -502,8 +503,8 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
-  flex: 1;
-  overflow: hidden;
+  flex-shrink: 0;
+  min-height: 400px;
 }
 
 .chart-card {
@@ -512,7 +513,7 @@ onUnmounted(() => {
   border-radius: 12px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-height: 400px;
 
   :deep(.el-card__header) {
     padding: 16px 20px;
@@ -522,7 +523,8 @@ onUnmounted(() => {
   :deep(.el-card__body) {
     padding: 20px;
     flex: 1;
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .chart-header {
@@ -533,7 +535,8 @@ onUnmounted(() => {
 
   .chart-container {
     width: 100%;
-    height: 300px;
+    flex: 1;
+    min-height: 300px;
   }
 }
 </style>

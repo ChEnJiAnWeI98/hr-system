@@ -1,5 +1,6 @@
 import type { OvertimeApplication, OvertimeApplicationListParams } from '@/types/attendance'
 import { createCrudMock } from '@/utils/crud'
+import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
 
 // 加班类型映射
 const overtimeTypeMap: Record<number, string> = {
@@ -293,7 +294,7 @@ const initialData: OvertimeApplication[] = [
 ]
 
 // 创建 CRUD Mock
-const overtimeMock = createCrudMock<OvertimeApplication>(initialData, {
+const overtimeMock = createCrudMock<OvertimeApplication>(alignEmployeeFields(initialData), {
   searchFields: ['employeeCode', 'employeeName']
 })
 

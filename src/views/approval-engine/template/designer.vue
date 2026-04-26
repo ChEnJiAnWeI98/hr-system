@@ -53,7 +53,7 @@ const flowData = ref<any>(null)
 
 // 返回
 const handleBack = () => {
-  router.push('/approval-engine/template')
+  router.push('/system/approval-template')
 }
 
 // 保存

@@ -8,9 +8,11 @@
 export interface PerformanceCycle {
   /** ID */
   id: number
+  /** 周期编号：PERF + 年 + 周期类型 + 序号 */
+  cycleNo?: string
   /** 周期名称 */
   cycleName: string
-  /** 周期类型：1-年度，2-半年度，3-季度，4-月度 */
+  /** 周期类型：1-年度，2-半年度，3-季度，4-月度，5-自定义 */
   cycleType: number
   /** 周期类型名称 */
   cycleTypeName?: string
@@ -18,7 +20,25 @@ export interface PerformanceCycle {
   startDate: string
   /** 结束日期 */
   endDate: string
-  /** 状态：1-未开始，2-进行中，3-已结束 */
+
+  /** ========== Phase A1：关键节点（6 个）========== */
+  /** 目标设定截止日 */
+  goalDeadline?: string
+  /** 过程跟踪节点（季度周期月末 / 年度周期双月末；JSON 字符串存日期数组） */
+  trackingNodes?: string
+  /** 评估开始日 */
+  evalStartDate?: string
+  /** 评估截止日 */
+  evalEndDate?: string
+  /** 校准完成日 */
+  calibrationDate?: string
+  /** 归档完成日 */
+  archiveDate?: string
+
+  /**
+   * 状态：1-未开始，2-目标设定中，3-过程跟踪中，4-评估中，5-校准中，6-公示中，7-已归档
+   * 严格按顺序流转，不可跳过或回退
+   */
   status: number
   /** 状态名称 */
   statusName?: string
@@ -26,10 +46,73 @@ export interface PerformanceCycle {
   participantCount: number
   /** 备注 */
   remark: string
+
+  /** ========== Phase A1：适用范围 & 评估表模板组 ========== */
+  /** 适用范围（JSON：部门 ID 数组 / 岗位族 / 职级；为空表示全员） */
+  applyScope?: string
+  /** 关联评估表模板组（JSON：[{ templateId, templateName }]） */
+  templateGroup?: string
+  /** 目标模式：okr / kpi / mixed（默认 mixed）*/
+  goalMode?: 'okr' | 'kpi' | 'mixed'
+  /** 强制分布配置（JSON：{S:10, A:20, B:40, C:20, D:10, tolerance:2}）*/
+  distributionConfig?: string
+  /** 复用自哪个周期 ID（复用创建时回填）*/
+  clonedFromId?: number
+
   /** 创建时间 */
   createTime: string
   /** 更新时间 */
   updateTime: string
+}
+
+/**
+ * 周期类型字典
+ */
+export const CYCLE_TYPE_MAP: Record<number, string> = {
+  1: '年度',
+  2: '半年',
+  3: '季度',
+  4: '月度',
+  5: '自定义'
+}
+
+/** Element Plus Tag 类型别名 */
+type ElTagType = 'primary' | 'success' | 'info' | 'warning' | 'danger'
+
+/**
+ * 周期状态字典 - 7 态状态机
+ */
+export const CYCLE_STATUS_MAP: Record<number, { label: string; type: ElTagType }> = {
+  1: { label: '未开始', type: 'info' },
+  2: { label: '目标设定中', type: 'warning' },
+  3: { label: '过程跟踪中', type: 'primary' },
+  4: { label: '评估中', type: 'warning' },
+  5: { label: '校准中', type: 'warning' },
+  6: { label: '公示中', type: 'success' },
+  7: { label: '已归档', type: 'info' }
+}
+
+/**
+ * 周期状态流转的合法下一状态
+ */
+export const CYCLE_NEXT_STATUS: Record<number, number | null> = {
+  1: 2,
+  2: 3,
+  3: 4,
+  4: 5,
+  5: 6,
+  6: 7,
+  7: null
+}
+
+/**
+ * 周期节点定义（用于甘特图渲染）
+ */
+export interface CycleMilestone {
+  key: string
+  label: string
+  date?: string
+  status: 'done' | 'current' | 'pending'
 }
 
 /**

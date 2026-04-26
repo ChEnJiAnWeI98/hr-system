@@ -95,10 +95,10 @@
             </template>
           </el-table-column>
           <el-table-column prop="endDate" label="到期日期" min-width="12%" />
-          <el-table-column prop="remainDays" label="剩余天数" min-width="10%">
+          <el-table-column prop="remainingDays" label="剩余天数" min-width="10%">
             <template #default="{ row }">
-              <el-tag :type="row.remainDays <= 7 ? 'danger' : 'warning'">
-                {{ row.remainDays }}天
+              <el-tag :type="row.remainingDays <= 7 ? 'danger' : 'warning'">
+                {{ row.remainingDays }}天
               </el-tag>
             </template>
           </el-table-column>
@@ -386,10 +386,11 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .page-container {
-  height: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding-bottom: 20px;
 }
 
 .stats-cards {
@@ -472,7 +473,8 @@ onUnmounted(() => {
 }
 
 .data-card {
-  flex: 1;
+  flex-shrink: 0;
+  min-height: 400px;
   border: none !important;
   box-shadow: none !important;
   border-radius: 12px;

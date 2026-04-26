@@ -251,3 +251,88 @@ export const {
   delete: deleteMock,
   batchDelete: batchDeleteMock
 } = offerMock
+
+// ============ Phase 2.3 新增：变量替换 + 版本管理 ============
+
+/** 按候选人姓名查 Offer 记录（候选人详情页 Timeline 用）*/
+export function getOffersByCandidateNameMock(name: string) {
+  return initialData
+    .filter((o) => o.candidateName === name)
+    .sort((a, b) => (b.createTime || '').localeCompare(a.createTime || ''))
+}
+
+/**
+ * 变量替换：把模板内容中 {{变量名}} 替换为实际值
+ */
+export function renderOfferContent(template: string, vars: Record<string, string>): string {
+  if (!template) return ''
+  return template.replace(/\{\{(.+?)\}\}/g, (_m, key) => {
+    const k = (key as string).trim()
+    return vars[k] ?? `{{${k}}}`
+  })
+}
+
+/**
+ * 创建 Offer（含模板渲染）
+ */
+export function createOfferMock(data: Partial<Offer>, renderedContent?: string) {
+  const next = offerMock.add({
+    ...data,
+    version: 1,
+    offerContent: renderedContent,
+    status: data.status ?? 1
+  })
+  return next
+}
+
+/**
+ * 更新 Offer（协商场景：版本号 +1）
+ */
+export function bumpVersionOfferMock(id: number, data: Partial<Offer>, renderedContent?: string) {
+  const detail = offerMock.getDetail(id)
+  if (!detail) throw new Error('Offer 不存在')
+  const newVersion = (detail.version || 1) + 1
+  return offerMock.update({
+    ...detail,
+    ...data,
+    id,
+    version: newVersion,
+    offerContent: renderedContent ?? detail.offerContent
+  })
+}
+
+/**
+ * 候选人拒绝 Offer（带拒绝原因）
+ */
+export function candidateRejectOfferMock(id: number, reasonCode: string, reasonText: string) {
+  return offerMock.update({
+    id,
+    status: 6, // 候选人拒绝
+    rejectReasonCode: reasonCode,
+    rejectReasonText: reasonText,
+    responseTime: new Date().toLocaleString('zh-CN')
+  } as any)
+}
+
+/**
+ * 候选人接受 Offer
+ */
+export function candidateAcceptOfferMock(id: number) {
+  return offerMock.update({
+    id,
+    status: 5, // 已接受
+    responseTime: new Date().toLocaleString('zh-CN')
+  } as any)
+}
+
+/**
+ * 撤回 Offer（HR 主动撤回已发送的 Offer）
+ */
+export function withdrawOfferMock(id: number, reason: string) {
+  return offerMock.update({
+    id,
+    status: 7, // 已失效
+    responseRemark: `[已撤回] ${reason}`,
+    updateTime: new Date().toLocaleString('zh-CN')
+  } as any)
+}
