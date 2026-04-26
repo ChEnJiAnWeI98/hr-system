@@ -5,7 +5,6 @@
       <div class="gate-brand">
         <div class="gate-icon">🔒</div>
         <h1 class="gate-title">人力资源管理系统</h1>
-        <p class="gate-subtitle">产品经理演示项目 · 需要访问口令</p>
       </div>
 
       <el-input
@@ -30,11 +29,6 @@
       <transition name="fade">
         <div v-if="error" class="gate-error">{{ error }}</div>
       </transition>
-
-      <div class="gate-footer">
-        <p>本项目为产品经理个人演示作品</p>
-        <p>口令通过邀请方式获取,不对外公开</p>
-      </div>
     </div>
   </div>
 </template>
@@ -43,7 +37,7 @@
 import { ref } from 'vue'
 
 // ⚠️⚠️⚠️ 修改访问口令请改下面这一行 ⚠️⚠️⚠️
-const PASSWORD = 'cjw2026'
+const PASSWORD = 'hrsystem0417'
 
 const GATE_KEY = 'hr_demo_gate_granted'
 
@@ -100,12 +94,6 @@ const handleSubmit = () => {
   font-size: 22px;
   font-weight: 600;
   color: #303133;
-  margin: 0 0 8px;
-}
-
-.gate-subtitle {
-  font-size: 14px;
-  color: #909399;
   margin: 0;
 }
 
@@ -122,20 +110,6 @@ const handleSubmit = () => {
   font-size: 13px;
   margin-top: 12px;
   text-align: center;
-}
-
-.gate-footer {
-  margin-top: 32px;
-  padding-top: 16px;
-  border-top: 1px solid #ebeef5;
-  text-align: center;
-  font-size: 12px;
-  color: #c0c4cc;
-  line-height: 1.8;
-}
-
-.gate-footer p {
-  margin: 0;
 }
 
 .fade-enter-active,
