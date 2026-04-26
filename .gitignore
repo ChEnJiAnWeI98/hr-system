@@ -6,7 +6,7 @@ dist-ssr
 .cursorrules
 
 # Auto-generated files
-src/types/auto-imports.d.ts
-src/types/components.d.ts
+# 注意: auto-imports.d.ts 和 components.d.ts 需要提交,
+# 否则 CI/CD(如 Vercel)跑 vue-tsc --noEmit 时找不到 ref/computed/ElMessage 等全局类型
 .auto-import.json
 .vercel
