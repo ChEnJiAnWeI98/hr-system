@@ -11,7 +11,7 @@ import { headerBarConfig } from './headerBar'
 const appConfig: SystemConfig = {
   // 系统信息
   systemInfo: {
-    name: '人力资源系统' // 系统名称
+    name: '人力资源管理系统' // 系统名称
   },
   // 系统主题
   systemThemeStyles: {

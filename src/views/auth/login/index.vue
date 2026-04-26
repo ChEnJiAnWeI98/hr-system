@@ -209,7 +209,9 @@
 
         // 登录成功处理
         showLoginSuccessNotice()
-        router.push('/workspace')
+        // 使用硬刷新跳转(而非 router.push 软导航),
+        // 确保所有 Pinia store 以登录态重新 hydrate,修复首次登录菜单不渲染的偶发问题
+        window.location.href = '/workspace'
       } else {
         // 响应状态异常
         throw new Error(message || 'Login failed')

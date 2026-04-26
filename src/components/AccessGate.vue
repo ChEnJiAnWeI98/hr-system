@@ -4,7 +4,7 @@
     <div class="gate-card">
       <div class="gate-brand">
         <div class="gate-icon">🔒</div>
-        <h1 class="gate-title">企业 HR 管理系统</h1>
+        <h1 class="gate-title">人力资源管理系统</h1>
         <p class="gate-subtitle">产品经理演示项目 · 需要访问口令</p>
       </div>
 
