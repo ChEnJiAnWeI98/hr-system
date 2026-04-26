@@ -7,9 +7,10 @@
  * - node_modules/.cache · 其它工具可能写的缓存目录
  */
 import { rmSync, existsSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const root = resolve(__dirname, '..')
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
 const targets = [
   'node_modules/.vite',

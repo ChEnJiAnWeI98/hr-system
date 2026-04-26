@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AccessGate: typeof import('./../components/AccessGate.vue')['default']
     AIAssistDialog: typeof import('./../components/business/AIAssistDialog.vue')['default']
     AIAssistPopover: typeof import('./../components/business/AIAssistPopover.vue')['default']
     AISalarySanityInline: typeof import('./../components/business/AISalarySanityInline.vue')['default']

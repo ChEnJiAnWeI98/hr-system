@@ -46,12 +46,13 @@ pnpm commit
 
 ### 技能优先使用规范（⚠️ 最高优先级）
 - **处理任何任务前，必须先检查 `.claude/skills/` 目录是否有相关技能**
-- **文档导出任务（需求说明书、测试用例、操作手册等）必须使用 `skills/common/doc-export` 技能**
-- **统一导出架构**：所有特定模块的导出脚本（如 `req-doc`）必须通过调用 `common/doc-export` 的脚本来实现核心导出逻辑，严禁跳过或自行实现。
-- **跨平台支持**：所有导出脚本和相关的 Python 处理工具必须同时支持 Windows (python) 和 macOS/Linux (python3)，并处理好 UTF-8 编码兼容性。
+- **文档导出任务（需求说明书、测试用例、操作手册等）必须使用 `skills/doc-export` 技能**
+- **统一导出架构**：所有特定模块的导出脚本（如 `req-doc`）必须通过调用 `doc-export` 的 `export.sh` 来实现核心导出逻辑，严禁跳过或自行实现。
+- **本地优先**：导出统一基于本机 Pandoc 完成，**数据不出本地**，不调用任何外部 API。
+- **跨平台支持**：导出脚本兼容 macOS / Linux,处理好 UTF-8 编码。
 - **禁止在未检查技能的情况下使用备用方案（如 Node.js、Python 脚本等）**
 - **技能架构**：
-  - `skills/common/doc-export` - 所有 Word 导出的基础技能（使用 Pandoc）
+  - `skills/doc-export` - 所有 Word 导出的基础技能（本地 Pandoc）
   - `skills/req-doc` - 需求说明书技能（引用 doc-export）
   - `skills/pm-test-cases` - 测试用例技能（引用 doc-export）
   - `skills/pm-operation-manual` - 操作手册技能（引用 doc-export）
@@ -59,8 +60,8 @@ pnpm commit
   1. 用户提出任务（如"导出需求说明书"）
   2. 检查 `.claude/skills/` 是否有相关技能
   3. 读取技能文件，查看是否引用了 doc-export
-  4. 使用技能中指定的脚本（如 `export-word.sh`）
-  5. 脚本会自动检测并安装依赖（Pandoc、Python、python-docx）
+  4. 使用 `bash .claude/skills/doc-export/export.sh <md文件> [template]` 执行导出
+  5. 脚本会调用本地 Pandoc 完成转换（前置条件:本机已安装 pandoc）
   6. 绝不跳过步骤 1-3，直接使用备用方案
 
 ### 开发规范
@@ -1358,7 +1359,6 @@ Logo 通过 `ArtLogo` 组件渲染。
 - 控制台欢迎信息（`src/utils/sys/console.ts` - 已清空）
 - 通知功能（按钮和组件已删除）
 - 聊天功能（按钮和 `ArtChatWindow` 已从全局配置中删除）
-- 快速入口快捷方式（`ArtFastEnter` 组件使用已删除）
 - 用户菜单项："使用文档"和"Github"链接
 
 ### 框架特定行为

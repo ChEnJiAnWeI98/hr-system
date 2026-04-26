@@ -198,7 +198,6 @@
   const {
     shouldShowMenuButton,
     shouldShowRefreshButton,
-    shouldShowFastEnter,
     shouldShowBreadcrumb,
     shouldShowGlobalSearch,
     shouldShowFullscreen,
@@ -206,8 +205,7 @@
     shouldShowChat,
     shouldShowLanguage,
     shouldShowSettings,
-    shouldShowThemeToggle,
-    fastEnterMinWidth: headerBarFastEnterMinWidth
+    shouldShowThemeToggle
   } = useHeaderBar()
 
   const { menuOpen, systemThemeColor, showSettingGuide, menuType, isDark, tabStyle, frameworkType } =

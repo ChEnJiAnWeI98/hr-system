@@ -1,6 +1,7 @@
 node_modules
 .DS_Store
 dist
+dist-redirect
 dist-ssr
 *.local
 .cursorrules
@@ -10,3 +11,6 @@ dist-ssr
 # 否则 CI/CD(如 Vercel)跑 vue-tsc --noEmit 时找不到 ref/computed/ElMessage 等全局类型
 .auto-import.json
 .vercel
+
+# 项目用 pnpm,禁止 npm install 生成的 lock 文件入 git
+package-lock.json
