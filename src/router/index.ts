@@ -11,8 +11,10 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
 const allRoutes = USE_MOCK ? [...staticRoutes, ...asyncRoutes] : staticRoutes
 
 // 创建路由实例
+// history base 跟 vite base 保持一致(Vercel 是 /,GitHub Pages 是 /hr-system/)
+// import.meta.env.BASE_URL 由 Vite 根据构建时的 base 配置自动注入
 export const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: allRoutes as any
 })
 

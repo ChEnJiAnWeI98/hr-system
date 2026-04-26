@@ -22,7 +22,10 @@ export default ({ mode }: { mode: string }) => {
     define: {
       __APP_VERSION__: JSON.stringify(VITE_VERSION)
     },
-    base: '/',
+    // base 从环境变量读取:
+    // - Vercel / 本地 dev: VITE_BASE_URL='/'(.env 默认)
+    // - GitHub Pages: 在 GitHub Actions 里设为 '/hr-system/'
+    base: VITE_BASE_URL || '/',
     server: {
       port: Number(VITE_PORT),
       proxy: {

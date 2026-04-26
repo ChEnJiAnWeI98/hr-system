@@ -1,0 +1,72 @@
+name: Deploy to GitHub Pages
+
+on:
+  # 每次 push 到 main 分支自动触发
+  push:
+    branches: [main]
+  # 支持手动触发(在 Actions 页面点 "Run workflow")
+  workflow_dispatch:
+
+# 授予 GitHub Actions 写入 Pages 和 id-token 的权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 避免并发部署(前一次没完再 push 时,新的等旧的结束再跑)
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.0'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build for GitHub Pages
+        # 关键:VITE_BASE_URL 设置为 /hr-system/(仓库名)
+        # vite.config.ts 的 base 和 router 的 history 都会读这个值
+        env:
+          VITE_BASE_URL: /hr-system/
+        run: pnpm build
+
+      - name: Copy index.html to 404.html (SPA fallback)
+        # GitHub Pages 不支持自定义 rewrite 规则;
+        # 把 index.html 复制一份叫 404.html,这样访问子路径刷新时
+        # 找不到文件→ serve 404.html → 里面就是 Vue SPA → 路由接管
+        run: cp dist/index.html dist/404.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
