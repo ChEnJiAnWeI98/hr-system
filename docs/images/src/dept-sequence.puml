@@ -1,0 +1,133 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam sequenceMessageAlign center
+skinparam ParticipantBackgroundColor #e3f2fd
+skinparam ParticipantBorderColor #1565c0
+skinparam DatabaseBackgroundColor #e8f5e9
+skinparam DatabaseBorderColor #2e7d32
+skinparam ActorBackgroundColor #fff3e0
+skinparam ActorBorderColor #e65100
+skinparam SequenceArrowColor #455a64
+skinparam SequenceLifeLineBorderColor #90a4ae
+skinparam NoteBackgroundColor #fffde7
+skinparam NoteBorderColor #f9a825
+
+actor 用户
+participant "部门管理页面"
+participant "后端服务"
+database "数据库"
+
+== 查看部门树 ==
+
+用户 -> "部门管理页面": 进入部门管理页面
+activate "部门管理页面"
+"部门管理页面" -> "后端服务": 请求部门树数据
+activate "后端服务"
+"后端服务" -> "数据库": 查询所有部门及层级关系
+activate "数据库"
+"数据库" --> "后端服务": 返回部门树数据
+deactivate "数据库"
+"后端服务" --> "部门管理页面": 返回树形结构数据
+deactivate "后端服务"
+"部门管理页面" --> 用户: 展示树形部门列表
+deactivate "部门管理页面"
+
+== 新增部门 ==
+
+用户 -> "部门管理页面": 点击【新增部门】
+activate "部门管理页面"
+"部门管理页面" --> 用户: 打开新增部门弹窗\n（展示上级部门下拉、负责人选择等）
+deactivate "部门管理页面"
+
+用户 -> "部门管理页面": 填写部门信息，点击【保存】
+activate "部门管理页面"
+"部门管理页面" -> "后端服务": 提交新增部门请求\n（名称、上级部门、负责人、编制人数等）
+activate "后端服务"
+"后端服务" -> "数据库": 插入新部门记录
+activate "数据库"
+"数据库" --> "后端服务": 返回插入成功
+deactivate "数据库"
+"后端服务" --> "部门管理页面": 返回成功响应
+deactivate "后端服务"
+"部门管理页面" --> 用户: 显示"新增成功"\n树形列表中展示新部门节点
+deactivate "部门管理页面"
+
+== 编辑部门 ==
+
+用户 -> "部门管理页面": 选择部门，点击【编辑】
+activate "部门管理页面"
+"部门管理页面" -> "后端服务": 请求部门详情
+activate "后端服务"
+"后端服务" -> "数据库": 查询部门详细信息
+activate "数据库"
+"数据库" --> "后端服务": 返回部门详情
+deactivate "数据库"
+"后端服务" --> "部门管理页面": 返回详情数据
+deactivate "后端服务"
+"部门管理页面" --> 用户: 打开编辑弹窗\n回显部门信息
+deactivate "部门管理页面"
+
+用户 -> "部门管理页面": 修改信息，点击【保存】
+activate "部门管理页面"
+"部门管理页面" -> "后端服务": 提交更新请求
+activate "后端服务"
+"后端服务" -> "数据库": 更新部门记录
+activate "数据库"
+"数据库" --> "后端服务": 返回更新成功
+deactivate "数据库"
+"后端服务" --> "部门管理页面": 返回成功响应
+deactivate "后端服务"
+"部门管理页面" --> 用户: 显示"保存成功"\n树形列表刷新
+deactivate "部门管理页面"
+
+== 删除部门 ==
+
+用户 -> "部门管理页面": 选择部门，点击【删除】
+activate "部门管理页面"
+"部门管理页面" -> "后端服务": 校验是否可删除\n（查询子部门及在职员工数量）
+activate "后端服务"
+"后端服务" -> "数据库": 查询子部门和在职员工
+activate "数据库"
+"数据库" --> "后端服务": 返回子部门数和员工数
+deactivate "数据库"
+
+alt 存在子部门或在职员工
+    "后端服务" --> "部门管理页面": 返回不可删除原因
+    deactivate "后端服务"
+    "部门管理页面" --> 用户: 提示"存在子部门或在职员工，无法删除"
+else 可以删除
+    "后端服务" --> "部门管理页面": 返回可删除确认
+    deactivate "后端服务"
+    "部门管理页面" --> 用户: 弹出确认删除对话框
+    deactivate "部门管理页面"
+
+    用户 -> "部门管理页面": 点击【确认删除】
+    activate "部门管理页面"
+    "部门管理页面" -> "后端服务": 提交删除请求
+    activate "后端服务"
+    "后端服务" -> "数据库": 软删除部门记录
+    activate "数据库"
+    "数据库" --> "后端服务": 返回删除成功
+    deactivate "数据库"
+    "后端服务" --> "部门管理页面": 返回成功响应
+    deactivate "后端服务"
+    "部门管理页面" --> 用户: 显示"删除成功"\n树形列表移除该节点
+    deactivate "部门管理页面"
+end
+
+== 调整部门层级 ==
+
+用户 -> "部门管理页面": 编辑部门，修改【上级部门】
+activate "部门管理页面"
+"部门管理页面" -> "后端服务": 提交层级调整请求\n（新的上级部门ID）
+activate "后端服务"
+"后端服务" -> "数据库": 更新部门层级关系
+activate "数据库"
+"数据库" --> "后端服务": 返回更新成功
+deactivate "数据库"
+"后端服务" --> "部门管理页面": 返回成功响应
+deactivate "后端服务"
+"部门管理页面" --> 用户: 显示"调整成功"\n树形结构重新布局
+deactivate "部门管理页面"
+
+@enduml

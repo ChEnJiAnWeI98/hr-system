@@ -1,0 +1,62 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam sequenceMessageAlign center
+
+start
+:进入数据报表与分析页面;
+:查看报表类型;
+
+:选择报表类型;
+
+if (报表类型?) then (HR驾驶舱)
+  :查看实时数据;
+  :查看统计卡片;
+  :查看趋势图表;
+  if (导出报表?) then (是)
+    :选择导出格式(Excel/PDF);
+    :下载报表文件;
+  else (否)
+  endif
+elseif (报表类型?) then (人员分析报表)
+  :设置筛选条件;
+  :选择分析维度;
+  :查看分析图表;
+  if (导出报表?) then (是)
+    :选择导出格式(Excel/PDF);
+    :下载报表文件;
+  else (否)
+  endif
+elseif (报表类型?) then (薪酬分析报表)
+  :设置时间范围;
+  :选择部门范围;
+  :查看薪酬分布;
+  :查看成本趋势;
+  if (导出报表?) then (是)
+    :选择导出格式(Excel/PDF);
+    :下载报表文件;
+  else (否)
+  endif
+elseif (报表类型?) then (招聘漏斗报表)
+  :设置统计周期;
+  :查看漏斗图;
+  :查看转化率;
+  if (导出报表?) then (是)
+    :选择导出格式(Excel/PDF);
+    :下载报表文件;
+  else (否)
+  endif
+else (考勤报表)
+  :设置查询月份;
+  :选择部门;
+  :查看考勤统计;
+  :查看异常明细;
+  if (导出报表?) then (是)
+    :选择导出格式(Excel/PDF);
+    :下载报表文件;
+  else (否)
+  endif
+endif
+
+stop
+
+@enduml

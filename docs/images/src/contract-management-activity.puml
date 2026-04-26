@@ -1,0 +1,65 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam sequenceMessageAlign center
+
+start
+:进入合同管理页面;
+:查看合同列表
+(默认展示全部合同);
+
+:选择操作;
+
+if (操作类型?) then (新增合同)
+  :点击【新增合同】按钮;
+  :填写合同信息;
+  if (数据验证?) then (验证通过)
+    :保存成功
+    刷新列表;
+  else (验证失败)
+    :显示错误提示
+    停留在表单;
+    :重新填写;
+    detach
+  endif
+elseif (操作类型?) then (编辑合同)
+  :点击【编辑】按钮;
+  :修改合同信息;
+  if (数据验证?) then (验证通过)
+    :保存成功
+    刷新列表;
+  else (验证失败)
+    :显示错误提示
+    停留在表单;
+    :重新填写;
+    detach
+  endif
+elseif (操作类型?) then (续签合同)
+  :点击【续签】按钮;
+  :填写续签信息;
+  if (数据验证?) then (验证通过)
+    :生成新合同
+    刷新列表;
+  else (验证失败)
+    :显示错误提示
+    停留在表单;
+    :重新填写;
+    detach
+  endif
+elseif (操作类型?) then (终止合同)
+  :点击【终止】按钮;
+  :填写终止原因;
+  if (确认终止?) then (确认)
+    :合同状态变更为已终止
+    刷新列表;
+  else (取消)
+    stop
+  endif
+else (查看详情)
+  :点击【查看详情】按钮;
+  :显示合同详细信息;
+  :可下载合同文件;
+endif
+
+stop
+
+@enduml

@@ -1,0 +1,109 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam sequenceMessageAlign center
+skinparam swimlaneBackgroundColor #FAFAFA
+skinparam ArrowColor #555555
+skinparam ActivityBorderColor #888888
+
+|系统|
+start
+:定时任务启动;
+note right
+  每天凌晨2点执行
+  扫描所有证件信息
+end note
+
+:查询即将到期的证件;
+note right
+  提前90天、60天、30天、
+  15天、7天、3天、当天
+end note
+
+if (是否有即将到期的证件?) then (有)
+  :生成提醒记录;
+
+  partition "发送提醒通知" {
+    :发送系统消息;
+    :发送邮件通知;
+    :发送企业微信通知;
+  }
+
+  |HR管理员|
+  :收到证件到期提醒;
+  :进入证件管理页面;
+
+  :查看到期证件列表;
+  note right
+    按到期时间排序
+    标注紧急程度
+  end note
+
+  if (选择操作?) then (联系员工)
+    :点击【联系员工】;
+    :发送提醒消息给员工;
+    |员工|
+    :收到证件到期提醒;
+    :准备更新证件;
+    |HR管理员|
+    :标记为"已联系";
+    stop
+
+  elseif (选择操作?) then (更新证件)
+    :点击【更新证件】;
+    :上传新证件信息;
+    note right
+      新证件号码
+      新有效期
+      证件扫描件
+    end note
+    |系统|
+    :更新证件信息;
+    :记录更新历史;
+    :取消到期提醒;
+    |HR管理员|
+    :系统显示更新成功;
+    stop
+
+  elseif (选择操作?) then (延期处理)
+    :点击【延期处理】;
+    :填写延期原因;
+    note right
+      员工正在办理中
+      预计完成时间
+    end note
+    |系统|
+    :记录延期信息;
+    :设置下次提醒时间;
+    |HR管理员|
+    :系统显示延期成功;
+    stop
+
+  else (查看详情)
+    :点击【查看详情】;
+    |系统|
+    :展示证件完整信息;
+    note right
+      证件类型、证件号码
+      有效期、剩余天数
+      历史更新记录
+    end note
+    |HR管理员|
+    :查看证件详情;
+    if (需要导出?) then (是)
+      :点击【导出】按钮;
+      |系统|
+      :生成证件报表;
+      |HR管理员|
+      :下载证件报表;
+    else (否)
+      :关闭详情页;
+    endif
+    stop
+  endif
+
+else (无)
+  :记录扫描日志;
+  stop
+endif
+
+@enduml

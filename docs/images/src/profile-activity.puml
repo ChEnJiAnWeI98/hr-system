@@ -1,0 +1,104 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam sequenceMessageAlign center
+skinparam swimlaneBackgroundColor #FAFAFA
+skinparam ArrowColor #555555
+skinparam ActivityBorderColor #888888
+
+|HR管理员|
+start
+:进入员工档案页面;
+
+:查看员工列表;
+note right
+  支持按部门、状态、
+  入职时间等条件筛选
+end note
+
+if (选择操作?) then (新增员工)
+  :点击【新增员工】;
+  :填写基本信息;
+  note right
+    姓名、性别、出生日期
+    身份证号、联系方式
+    所属部门、岗位等
+  end note
+  :填写教育经历;
+  :填写工作经历;
+  :填写证件信息;
+  :填写紧急联系人;
+  if (信息验证?) then (通过)
+    :保存员工档案;
+    :系统显示成功提示;
+  else (不通过)
+    :显示错误提示;
+    :返回修改;
+  endif
+
+elseif (选择操作?) then (编辑员工)
+  :点击【编辑】按钮;
+  :系统回显员工信息;
+  :修改员工信息;
+  note right
+    可修改基本信息、
+    教育经历、工作经历、
+    证件信息等
+  end note
+  if (信息验证?) then (通过)
+    :保存修改;
+    :系统显示成功提示;
+  else (不通过)
+    :显示错误提示;
+    :返回修改;
+  endif
+
+elseif (选择操作?) then (查看详情)
+  :点击【查看详情】;
+  :系统展示完整档案;
+  note right
+    基本信息、教育经历
+    工作经历、证件信息
+    紧急联系人、异动记录
+  end note
+  if (需要导出?) then (是)
+    :点击【导出】按钮;
+    :选择导出格式;
+    note right
+      支持PDF、Excel格式
+    end note
+    :系统生成文件;
+    :下载到本地;
+  else (否)
+    :关闭详情页;
+  endif
+
+elseif (选择操作?) then (批量导出)
+  :选择员工记录;
+  :点击【批量导出】;
+  :选择导出字段;
+  :系统生成Excel文件;
+  :下载到本地;
+
+else (停用员工)
+  :点击【停用】按钮;
+  if (确认停用?) then (确认)
+    |系统|
+    :检查员工状态;
+    if (是否在职?) then (在职)
+      :提示"请先办理离职";
+      |HR管理员|
+      :操作被阻止;
+    else (已离职)
+      :更新员工状态为停用;
+      |HR管理员|
+      :系统显示成功提示;
+    endif
+  else (取消)
+    :取消操作;
+  endif
+endif
+
+:刷新员工列表;
+stop
+
+@enduml

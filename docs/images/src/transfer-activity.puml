@@ -1,0 +1,53 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam sequenceMessageAlign center
+skinparam swimlaneBackgroundColor #FAFAFA
+skinparam ArrowColor #555555
+skinparam ActivityBorderColor #888888
+
+|员工|
+start
+:提交异动申请;
+note right
+  调岗、晋升、降职、
+  调薪等异动类型
+end note
+
+|部门负责人|
+:收到异动申请通知;
+:查看异动申请详情;
+if (是否同意?) then (同意)
+  |HR管理员|
+  :收到审批通过通知;
+  :审核异动申请;
+  note right
+    核对异动信息
+    检查编制情况
+    确认生效日期
+  end note
+  if (是否通过?) then (通过)
+    :确认异动生效日期;
+    |系统|
+    :更新员工档案;
+    note right
+      更新部门、岗位、
+      薪资等信息
+    end note
+    :记录异动历史;
+    :发送异动通知;
+    |员工|
+    :收到异动确认通知;
+    :查看新的部门/岗位信息;
+    stop
+  else (拒绝)
+    |员工|
+    :收到拒绝通知;
+    stop
+  endif
+else (拒绝)
+  |员工|
+  :收到拒绝通知;
+  stop
+endif
+
+@enduml

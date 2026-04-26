@@ -1,0 +1,68 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam sequenceMessageAlign center
+
+start
+:进入绩效管理页面;
+:查看绩效列表
+(默认展示当前周期);
+
+:选择操作;
+
+if (操作类型?) then (设定目标)
+  :点击【设定目标】按钮;
+  :选择目标类型(OKR/KPI);
+  :填写目标内容;
+  if (数据验证?) then (验证通过)
+    :保存成功
+    刷新列表;
+  else (验证失败)
+    :显示错误提示
+    停留在表单;
+    :重新填写;
+    detach
+  endif
+elseif (操作类型?) then (更新进度)
+  :点击【更新进度】按钮;
+  :填写进度信息;
+  if (数据验证?) then (验证通过)
+    :保存成功
+    刷新列表;
+  else (验证失败)
+    :显示错误提示
+    停留在表单;
+    :重新填写;
+    detach
+  endif
+elseif (操作类型?) then (绩效评估)
+  :点击【评估】按钮;
+  :选择评估类型(自评/上级评分/360度);
+  :填写评估内容;
+  if (数据验证?) then (验证通过)
+    :提交评估
+    刷新列表;
+  else (验证失败)
+    :显示错误提示
+    停留在表单;
+    :重新填写;
+    detach
+  endif
+elseif (操作类型?) then (绩效校准)
+  :点击【校准】按钮;
+  :查看强制分布比例;
+  :调整评定结果;
+  if (确认校准?) then (确认)
+    :保存校准结果
+    刷新列表;
+  else (取消)
+    stop
+  endif
+else (查看档案)
+  :点击【查看档案】按钮;
+  :显示历史绩效记录;
+  :查看绩效趋势图;
+endif
+
+stop
+
+@enduml

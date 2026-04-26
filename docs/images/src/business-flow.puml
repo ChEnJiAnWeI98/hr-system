@@ -1,0 +1,101 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam sequenceMessageAlign center
+skinparam swimlaneBackgroundColor #FAFAFA
+skinparam ArrowColor #555555
+skinparam ActivityBorderColor #888888
+
+|员工|
+start
+:提交入职申请;
+
+|部门负责人|
+:审核入职申请;
+if (是否通过?) then (通过)
+|HR管理员|
+:审核入职资料;
+if (资料齐全?) then (齐全)
+:办理入职手续;
+|系统|
+:自动开通账号;
+:发送欢迎通知;
+
+|HR管理员|
+:创建员工档案;
+:启动试用期跟踪;
+
+|系统|
+if (试用期到期?) then (到期)
+|HR管理员|
+:发起转正评估;
+|部门负责人|
+:填写转正评估表;
+if (评估通过?) then (通过)
+|HR管理员|
+:确认转正;
+|系统|
+:更新员工状态为正式;
+else (不通过)
+|HR管理员|
+:延长试用期或终止合同;
+endif
+else (未到期)
+|系统|
+:继续跟踪试用期;
+endif
+
+|员工|
+if (发起异动申请?) then (是)
+:提交调岗/晋升/调薪申请;
+|部门负责人|
+:审批异动申请;
+if (是否通过?) then (通过)
+|HR管理员|
+:记录异动信息;
+:更新员工档案;
+else (拒绝)
+|员工|
+:收到拒绝通知;
+endif
+else (否)
+endif
+
+|员工|
+if (提交离职申请?) then (是)
+:填写离职申请;
+|部门负责人|
+:审批离职申请;
+if (是否通过?) then (通过)
+|员工|
+:完成工作交接;
+|HR管理员|
+:办理离职手续;
+|系统|
+:停用账号;
+:归档员工信息;
+|HR管理员|
+:完成离职归档;
+else (拒绝)
+|员工|
+:继续在职;
+endif
+else (否)
+|员工|
+:继续在职状态;
+endif
+
+stop
+
+else (资料不齐)
+|HR管理员|
+:通知补充资料;
+|员工|
+:补充入职资料;
+endif
+else (拒绝)
+|员工|
+:收到拒绝通知;
+stop
+endif
+
+@enduml

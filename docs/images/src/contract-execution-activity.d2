@@ -1,0 +1,263 @@
+direction: down
+
+start: 进入合同管理页面 {
+  shape: oval
+  style.fill: "#e8f5e9"
+}
+
+step1: 查看合同列表\n(展示全部合同) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+filter: 按条件筛选合同？ {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+filter_action: 按员工姓名、合同类型、\n合同状态、到期时间筛选 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+select_contract: 选择生效中的合同 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+choose_operation: 选择操作类型 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+# 续签流程
+renew_click: 点击【续签】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+renew_dialog: 系统打开续签弹窗\n回显原合同部分信息 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+renew_fill: 填写新合同期限、\n续签条款、薪资标准 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+renew_submit: 点击【提交审批】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+renew_validate: 数据验证 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+renew_validate_fail: 显示错误提示\n停留在弹窗 {
+  shape: rectangle
+  style.fill: "#fce4ec"
+}
+
+renew_approval: 进入审批流程 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+renew_approval_result: 审批是否通过？ {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+renew_success: 系统生成新合同记录\n原合同状态更新为"已续签"\n显示续签成功提示 {
+  shape: rectangle
+  style.fill: "#d5e8d4"
+}
+
+# 变更流程
+change_click: 点击【变更】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+change_dialog: 系统打开变更弹窗\n回显当前合同信息 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+change_select_type: 选择变更类型\n(薪资调整、岗位变动、\n工作地点变更等) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+change_fill: 填写变更内容和变更原因 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+change_submit: 点击【提交审批】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+change_validate: 数据验证 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+change_validate_fail: 显示错误提示\n停留在弹窗 {
+  shape: rectangle
+  style.fill: "#fce4ec"
+}
+
+change_approval: 进入审批流程 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+change_approval_result: 审批是否通过？ {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+change_success: 系统更新合同信息\n记录变更历史\n显示变更成功提示 {
+  shape: rectangle
+  style.fill: "#d5e8d4"
+}
+
+# 终止流程
+terminate_click: 点击【终止】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+terminate_dialog: 系统打开终止确认弹窗 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+terminate_fill: 填写终止原因、终止日期、\n终止类型 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+terminate_submit: 点击【提交审批】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+terminate_validate: 数据验证 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+terminate_validate_fail: 显示错误提示\n停留在弹窗 {
+  shape: rectangle
+  style.fill: "#fce4ec"
+}
+
+terminate_approval: 进入审批流程 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+terminate_approval_result: 审批是否通过？ {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+terminate_success: 系统更新合同状态为"已终止"\n记录终止信息\n关联离职流程\n显示终止成功提示 {
+  shape: rectangle
+  style.fill: "#d5e8d4"
+}
+
+# 查看详情流程
+view_detail: 点击【查看详情】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+show_detail: 系统打开详情页面\n显示合同完整信息\n包括续签记录、变更历史、\n终止记录等 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+end: 结束 {
+  shape: oval
+  style.fill: "#e8f5e9"
+}
+
+# 连接
+start -> step1
+step1 -> filter
+
+filter -> filter_action: 需要筛选
+filter -> select_contract: 不筛选
+
+filter_action -> select_contract
+
+select_contract -> choose_operation
+
+# 续签流程连接
+choose_operation -> renew_click: 续签
+renew_click -> renew_dialog
+renew_dialog -> renew_fill
+renew_fill -> renew_submit
+renew_submit -> renew_validate
+
+renew_validate -> renew_validate_fail: 验证失败
+renew_validate -> renew_approval: 验证通过
+
+renew_validate_fail -> renew_fill: 修改后重新提交
+
+renew_approval -> renew_approval_result
+
+renew_approval_result -> renew_success: 审批通过
+renew_approval_result -> end: 审批拒绝
+
+renew_success -> view_detail
+
+# 变更流程连接
+choose_operation -> change_click: 变更
+change_click -> change_dialog
+change_dialog -> change_select_type
+change_select_type -> change_fill
+change_fill -> change_submit
+change_submit -> change_validate
+
+change_validate -> change_validate_fail: 验证失败
+change_validate -> change_approval: 验证通过
+
+change_validate_fail -> change_fill: 修改后重新提交
+
+change_approval -> change_approval_result
+
+change_approval_result -> change_success: 审批通过
+change_approval_result -> end: 审批拒绝
+
+change_success -> view_detail
+
+# 终止流程连接
+choose_operation -> terminate_click: 终止
+terminate_click -> terminate_dialog
+terminate_dialog -> terminate_fill
+terminate_fill -> terminate_submit
+terminate_submit -> terminate_validate
+
+terminate_validate -> terminate_validate_fail: 验证失败
+terminate_validate -> terminate_approval: 验证通过
+
+terminate_validate_fail -> terminate_fill: 修改后重新提交
+
+terminate_approval -> terminate_approval_result
+
+terminate_approval_result -> terminate_success: 审批通过
+terminate_approval_result -> end: 审批拒绝
+
+terminate_success -> view_detail
+
+# 查看详情连接
+view_detail -> show_detail
+show_detail -> end

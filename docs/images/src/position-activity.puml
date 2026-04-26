@@ -1,0 +1,56 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam ActivityBackgroundColor #e3f2fd
+skinparam ActivityBorderColor #1565c0
+skinparam ActivityDiamondBackgroundColor #fff3e0
+skinparam ActivityDiamondBorderColor #e65100
+skinparam ArrowColor #1565c0
+skinparam ActivityStartColor #388e3c
+skinparam ActivityEndColor #388e3c
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 13
+
+start
+
+:进入岗位管理页面;
+
+:查看岗位列表\n（默认展示全部岗位）;
+
+fork
+  :【查询筛选】\n选择部门或职级筛选条件;
+  :点击【查询】按钮;
+  :系统返回符合条件的岗位列表;
+
+fork again
+  :点击【新增岗位】按钮;
+  :填写岗位信息\n（岗位名称、所属部门、岗位类别、\n职级职等、岗位说明书）;
+  :点击【保存】按钮;
+  if (岗位名称是否重复？) then (重复)
+    #fce4ec:显示"岗位名称已存在"\n请重新填写;
+    :修改岗位名称;
+    :重新点击【保存】;
+  else (不重复)
+  endif
+  #d5e8d4:新增成功\n刷新岗位列表;
+
+fork again
+  :在岗位列表中选择目标岗位;
+  :点击【编辑】按钮;
+  :修改岗位信息;
+  :点击【保存】按钮;
+  #d5e8d4:编辑成功\n刷新岗位列表;
+
+fork again
+  :在岗位列表中选择【启用中】的岗位;
+  :点击【停用】按钮;
+  :系统弹出确认提示框;
+  if (该岗位是否有在职员工？) then (有在职员工)
+    #fce4ec:提示"该岗位下存在在职员工\n无法停用，请先调整员工岗位";
+  else (无在职员工)
+    #d5e8d4:停用成功\n岗位状态变为【已停用】;
+  endif
+
+end fork
+
+stop
+@enduml

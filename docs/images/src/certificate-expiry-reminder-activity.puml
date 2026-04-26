@@ -1,0 +1,65 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam activityBackgroundColor #E3F2FD
+skinparam activityBorderColor #1976D2
+skinparam activityStartColor #E8F5E9
+skinparam activityEndColor #E8F5E9
+skinparam activityDiamondBackgroundColor #FFF3E0
+skinparam activityDiamondBorderColor #F57C00
+
+start
+
+:HR进入证件到期提醒页面;
+:系统显示即将到期的证件列表\n（按紧急程度排序）;
+
+:HR筛选证件;
+note right
+  可按以下条件筛选：
+  - 证件类型
+  - 到期时间范围
+  - 员工部门
+end note
+
+if (是否查看证件详情？) then (是)
+  :HR点击某个证件;
+  :系统显示证件详细信息;
+
+  if (是否通知员工更新？) then (是)
+    :HR点击【通知员工】按钮;
+    :系统发送通知\n（系统消息/邮件/企业微信）;
+    :系统显示"通知已发送"提示;
+  else (否)
+    :继续查看其他证件;
+  endif
+else (否)
+  :继续浏览列表;
+endif
+
+if (员工是否已更新证件？) then (是)
+  :员工提交新证件信息;
+  :HR查看更新申请;
+
+  if (HR确认更新？) then (是)
+    :HR点击【确认更新】按钮;
+    :系统更新证件信息;
+    :系统记录证件更新历史;
+    :系统显示"证件已更新"提示;
+  else (否)
+    :HR点击【驳回】按钮;
+    :系统显示驳回原因输入框;
+    :HR填写驳回原因;
+    :系统通知员工重新提交;
+  endif
+else (否)
+  if (是否继续提醒？) then (是)
+    :HR点击【再次提醒】按钮;
+    :系统发送提醒通知;
+    :系统显示"提醒已发送"提示;
+  else (否)
+    :结束操作;
+  endif
+endif
+
+stop
+
+@enduml

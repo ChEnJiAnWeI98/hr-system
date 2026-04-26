@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+  <head>
+    <title>调试菜单数据</title>
+    <script>
+      // 在控制台打印菜单数据
+      setTimeout(() => {
+        const menuStore = window.__PINIA__?.state?.value?.menu
+        if (menuStore) {
+          console.log('=== 菜单 Store 数据 ===')
+          console.log('menuList:', menuStore.menuList)
+
+          const systemMenu = menuStore.menuList.find((m) => m.path === '/system')
+          if (systemMenu) {
+            console.log('\n=== 系统管理菜单 ===')
+            console.log('path:', systemMenu.path)
+            console.log('children 数量:', systemMenu.children?.length)
+            console.log('children:', systemMenu.children)
+
+            if (systemMenu.children) {
+              console.log('\n=== 子菜单列表 ===')
+              systemMenu.children.forEach((child, index) => {
+                console.log(
+                  `${index + 1}. ${child.path} - ${child.meta?.title} (isHide: ${child.meta?.isHide})`
+                )
+              })
+            }
+          }
+        }
+      }, 3000)
+    </script>
+  </head>
+  <body>
+    <h1>请打开浏览器控制台查看菜单数据</h1>
+    <p>3秒后会自动打印菜单数据到控制台</p>
+  </body>
+</html>

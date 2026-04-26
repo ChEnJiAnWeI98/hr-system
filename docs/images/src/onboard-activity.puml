@@ -1,0 +1,121 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam sequenceMessageAlign center
+skinparam swimlaneBackgroundColor #FAFAFA
+skinparam ArrowColor #555555
+skinparam ActivityBorderColor #888888
+
+|HR管理员|
+start
+:进入入职管理页面;
+
+:查看入职申请列表;
+note right
+  支持按状态、部门、
+  申请时间等条件筛选
+end note
+
+if (选择操作?) then (发起入职)
+  :点击【发起入职】;
+  :填写候选人信息;
+  note right
+    姓名、性别、联系方式
+    应聘部门、应聘岗位
+    期望入职日期等
+  end note
+  :提交入职申请;
+  |系统|
+  :创建入职申请记录;
+  :发送审批通知;
+  |部门负责人|
+  :收到审批通知;
+  :查看入职申请;
+  if (是否通过?) then (通过)
+    |HR管理员|
+    :收到审批通过通知;
+    :准备入职资料清单;
+    note right
+      劳动合同、身份证复印件
+      学历证明、照片等
+    end note
+    :通知候选人准备资料;
+    |候选人|
+    :提交入职资料;
+    |HR管理员|
+    :核对资料清单;
+    if (资料齐全?) then (齐全)
+      :办理入职手续;
+      note right
+        签订劳动合同
+        录入员工档案
+        分配工号
+      end note
+      |系统|
+      :创建员工档案;
+      :开通系统账号;
+      :发送欢迎邮件;
+      |HR管理员|
+      :完成入职办理;
+      :系统显示成功提示;
+    else (不齐全)
+      :通知候选人补充资料;
+      |候选人|
+      :补充缺失资料;
+    endif
+  else (拒绝)
+    |HR管理员|
+    :收到审批拒绝通知;
+    :通知候选人;
+    :入职流程结束;
+  endif
+
+elseif (选择操作?) then (查看详情)
+  :点击【查看详情】;
+  :系统展示入职申请详情;
+  note right
+    候选人信息、审批记录
+    资料清单、办理进度
+  end note
+  if (需要催办?) then (是)
+    :点击【催办】按钮;
+    |系统|
+    :发送催办通知;
+    |HR管理员|
+    :系统显示催办成功;
+  else (否)
+    :关闭详情页;
+  endif
+
+elseif (选择操作?) then (撤回申请)
+  :点击【撤回】按钮;
+  if (确认撤回?) then (确认)
+    |系统|
+    :更新申请状态为已撤回;
+    |HR管理员|
+    :系统显示撤回成功;
+  else (取消)
+    :取消操作;
+  endif
+
+else (批量导入)
+  :点击【批量导入】;
+  :下载导入模板;
+  :填写候选人信息;
+  :上传Excel文件;
+  |系统|
+  :校验数据格式;
+  if (数据验证?) then (通过)
+    :批量创建入职申请;
+    |HR管理员|
+    :系统显示导入成功;
+  else (不通过)
+    :返回错误提示;
+    |HR管理员|
+    :修正数据后重新上传;
+  endif
+endif
+
+:刷新入职申请列表;
+stop
+
+@enduml

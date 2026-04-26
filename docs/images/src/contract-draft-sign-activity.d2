@@ -1,0 +1,185 @@
+direction: down
+
+start: 进入合同起草页面 {
+  shape: oval
+  style.fill: "#e8f5e9"
+}
+
+step1: 查看待入职员工列表\n(默认展示全部待入职员工) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+filter: 按条件筛选员工？ {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+filter_action: 按员工姓名、部门、岗位筛选 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+select_employee: 选择需要起草合同的员工 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+click_draft: 点击【起草合同】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+select_template: 系统打开模板选择弹窗\n选择合同模板 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+auto_fill: 系统自动生成合同草稿\n自动填充员工档案数据 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+show_editor: 系统打开合同编辑页面\n展示自动填充后的内容 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+edit_contract: 在线编辑合同内容\n修改合同条款 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+upload_attachment: 是否上传附件？ {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+upload_action: 上传合同附件 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+auto_save: 系统实时保存为草稿 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+submit_approval: 点击【提交审批】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+validate: 系统验证数据完整性和合规性 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+validate_fail: 显示错误提示\n需修改后重新提交 {
+  shape: rectangle
+  style.fill: "#fce4ec"
+}
+
+validate_success: 合同进入审批流程\n状态更新为"待审批" {
+  shape: rectangle
+  style.fill: "#d5e8d4"
+}
+
+approval_result: 审批是否通过？ {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+approval_pass: 合同状态更新为"待签订"\nHR收到签订通知 {
+  shape: rectangle
+  style.fill: "#d5e8d4"
+}
+
+enter_sign: 进入合同签订页面 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+select_sign_method: 选择签订方式\n(电子签章或纸质扫描件) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+fill_sign_info: 填写签订信息\n(签订日期、签订地点等) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+confirm_sign: 点击【确认签订】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+sign_success: 系统记录签订信息\n合同状态更新为"生效中" {
+  shape: rectangle
+  style.fill: "#d5e8d4"
+}
+
+view_detail: 点击【查看详情】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+show_detail: 系统打开详情页面\n显示合同完整信息 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+download: 提供合同文件下载 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+end: 结束 {
+  shape: oval
+  style.fill: "#e8f5e9"
+}
+
+# 连接
+start -> step1
+step1 -> filter
+
+filter -> filter_action: 需要筛选
+filter -> select_employee: 不筛选
+
+filter_action -> select_employee
+
+select_employee -> click_draft
+click_draft -> select_template
+select_template -> auto_fill
+auto_fill -> show_editor
+show_editor -> edit_contract
+edit_contract -> upload_attachment
+
+upload_attachment -> upload_action: 需要上传
+upload_attachment -> auto_save: 不上传
+
+upload_action -> auto_save
+auto_save -> submit_approval
+submit_approval -> validate
+
+validate -> validate_fail: 验证失败
+validate -> validate_success: 验证通过
+
+validate_fail -> edit_contract: 修改后重新提交
+
+validate_success -> approval_result
+
+approval_result -> approval_pass: 审批通过
+approval_result -> end: 审批拒绝
+
+approval_pass -> enter_sign
+enter_sign -> select_sign_method
+select_sign_method -> fill_sign_info
+fill_sign_info -> confirm_sign
+confirm_sign -> sign_success
+
+sign_success -> view_detail
+view_detail -> show_detail
+show_detail -> download
+download -> end

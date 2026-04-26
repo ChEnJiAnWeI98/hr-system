@@ -1,0 +1,49 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam sequenceMessageAlign center
+skinparam swimlaneBackgroundColor #FAFAFA
+skinparam ArrowColor #555555
+skinparam ActivityBorderColor #888888
+
+|员工|
+start
+:提交离职申请;
+
+|部门负责人|
+:审核离职申请;
+if (是否通过?) then (通过)
+|HR管理员|
+:审核离职申请;
+if (是否通过?) then (通过)
+:确认离职日期;
+|员工|
+:办理工作交接;
+:填写交接清单;
+|HR管理员|
+:审核交接清单;
+if (交接完成?) then (完成)
+:办理离职手续;
+:收回工牌、门禁卡;
+:结算工资;
+|系统|
+:停用系统账号;
+:归档员工信息;
+|HR管理员|
+:完成离职归档;
+stop
+else (未完成)
+|员工|
+:继续完成交接;
+endif
+else (拒绝)
+|员工|
+:收到拒绝通知;
+stop
+endif
+else (拒绝)
+|员工|
+:收到拒绝通知;
+stop
+endif
+
+@enduml

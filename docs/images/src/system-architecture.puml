@@ -1,0 +1,53 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam componentBackgroundColor #FAFAFA
+skinparam packageStyle Rectangle
+skinparam ArrowColor #555555
+skinparam defaultFontName "Microsoft YaHei"
+
+title 企业HR系统 - 组织与员工管理模块\n系统功能架构图
+
+package "组织管理" #E3F2FD {
+  [部门管理\n无限层级部门树\n部门负责人设置] as dept #DAE8FC
+  [岗位管理\n岗位体系维护\n职级职等管理] as pos #DAE8FC
+  [编制管理\n编制计划设定\n超编/缺编预警] as headcount #DAE8FC
+  [组织架构图\n可视化展示\n支持导出] as orgchart #DAE8FC
+}
+
+package "员工管理" #E8F5E9 {
+  [员工档案\n基本信息\n教育/工作经历\n证件信息] as profile #D5E8D4
+  [入职管理\n入职流程审批\n资料清单核对\n账号自动开通] as onboard #D5E8D4
+  [离职管理\n离职申请审批\n工作交接清单\n手续办理跟踪] as offboard #D5E8D4
+  [员工异动\n调岗/晋升/降职\n调薪记录\n异动历史查询] as transfer #D5E8D4
+  [试用期管理\n试用期跟踪\n转正提醒评估\n转正审批] as probation #D5E8D4
+  [证件到期提醒\n身份证/劳动合同\n资质证书提醒\n自定义预警规则] as cert #D5E8D4
+}
+
+package "系统管理" #F3E5F5 {
+  [用户管理\n账号权限配置] as user #E1BEE7
+  [角色管理\n角色权限设置] as role #E1BEE7
+  [操作日志\n全量操作记录] as log #E1BEE7
+}
+
+cloud "工作台\n待办事项 | 证件预警 | 数据概览" as dashboard #FFF9C4
+
+dashboard --> dept : 组织数据汇总
+dashboard --> profile : 员工概览
+dashboard --> cert : 到期预警
+
+dept --> headcount : 编制数据关联
+dept --> orgchart : 部门树展示
+pos --> orgchart : 岗位信息展示
+pos --> profile : 岗位信息关联
+
+onboard --> profile : 创建员工档案
+onboard --> cert : 触发证件跟踪
+offboard --> profile : 更新员工状态
+transfer --> profile : 更新档案信息
+probation --> profile : 转正后更新状态
+
+user --> role : 角色分配
+role --> dept : 数据权限控制
+role --> profile : 数据权限控制
+
+@enduml

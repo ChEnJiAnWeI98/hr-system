@@ -1,0 +1,239 @@
+direction: down
+
+start: 进入合同管理页面 {
+  shape: oval
+  style.fill: "#e8f5e9"
+}
+
+choose_function: 选择功能 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+# 查看到期提醒流程
+reminder_entry: 进入到期提醒页面 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+reminder_list: 系统展示到期提醒列表\n(提前30/60/90天到期的合同) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+reminder_filter: 是否筛选？ {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+reminder_filter_action: 按到期时间、员工姓名、\n部门等条件筛选 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+reminder_view: 查看提醒详情 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+# 查看归档合同流程
+archive_entry: 进入合同归档页面 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+archive_list: 系统展示已归档的合同列表 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+archive_filter: 是否检索？ {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+archive_filter_action: 按合同编号、员工姓名、\n合同类型、归档时间等条件检索 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+archive_view: 点击【查看详情】 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+archive_detail: 系统打开详情页面\n显示合同完整信息\n提供文件下载功能 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+# 手动归档合同流程
+manual_archive_entry: 在合同列表中选择\n已终止的合同 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+manual_archive_click: 点击【归档】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+manual_archive_confirm: 系统打开归档确认弹窗 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+manual_archive_decision: 是否确认归档？ {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+manual_archive_success: 系统更新合同状态为"已归档"\n合同从列表移至归档列表\n显示归档成功提示 {
+  shape: rectangle
+  style.fill: "#d5e8d4"
+}
+
+# 查看统计报表流程
+stats_entry: 进入合同统计页面 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+stats_display: 系统展示统计报表 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+stats_types: 选择统计类型 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+stats_expiry: 查看合同到期统计\n(未来3/6/12个月到期数量) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+stats_type_dist: 查看合同类型分布\n(各类合同数量和占比) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+stats_renewal: 查看续签率分析\n(按月度/季度/年度统计) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+stats_trend: 查看合同数量趋势\n(签订/到期/终止数量趋势图) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+stats_filter: 是否筛选统计数据？ {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+stats_filter_action: 按时间范围、部门、\n合同类型等条件筛选 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+# 批量导出数据流程
+export_entry: 在合同列表或归档列表中\n选择需要导出的合同 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+export_click: 点击【批量导出】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+export_validate: 数据验证 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+export_fail: 显示错误提示\n(单次导出不超过1000条) {
+  shape: rectangle
+  style.fill: "#fce4ec"
+}
+
+export_success: 系统生成Excel文件\n用户下载导出文件 {
+  shape: rectangle
+  style.fill: "#d5e8d4"
+}
+
+end: 结束 {
+  shape: oval
+  style.fill: "#e8f5e9"
+}
+
+# 连接
+start -> choose_function
+
+# 查看到期提醒流程连接
+choose_function -> reminder_entry: 查看到期提醒
+reminder_entry -> reminder_list
+reminder_list -> reminder_filter
+
+reminder_filter -> reminder_filter_action: 需要筛选
+reminder_filter -> reminder_view: 不筛选
+
+reminder_filter_action -> reminder_view
+reminder_view -> end
+
+# 查看归档合同流程连接
+choose_function -> archive_entry: 查看归档合同
+archive_entry -> archive_list
+archive_list -> archive_filter
+
+archive_filter -> archive_filter_action: 需要检索
+archive_filter -> archive_view: 不检索
+
+archive_filter_action -> archive_view
+archive_view -> archive_detail
+archive_detail -> end
+
+# 手动归档合同流程连接
+choose_function -> manual_archive_entry: 手动归档
+manual_archive_entry -> manual_archive_click
+manual_archive_click -> manual_archive_confirm
+manual_archive_confirm -> manual_archive_decision
+
+manual_archive_decision -> manual_archive_success: 确认
+manual_archive_decision -> end: 取消
+
+manual_archive_success -> end
+
+# 查看统计报表流程连接
+choose_function -> stats_entry: 查看统计报表
+stats_entry -> stats_display
+stats_display -> stats_types
+
+stats_types -> stats_expiry: 合同到期统计
+stats_types -> stats_type_dist: 合同类型分布
+stats_types -> stats_renewal: 续签率分析
+stats_types -> stats_trend: 合同数量趋势
+
+stats_expiry -> stats_filter
+stats_type_dist -> stats_filter
+stats_renewal -> stats_filter
+stats_trend -> stats_filter
+
+stats_filter -> stats_filter_action: 需要筛选
+stats_filter -> end: 不筛选
+
+stats_filter_action -> end
+
+# 批量导出数据流程连接
+choose_function -> export_entry: 批量导出
+export_entry -> export_click
+export_click -> export_validate
+
+export_validate -> export_fail: 验证失败
+export_validate -> export_success: 验证通过
+
+export_fail -> export_entry: 重新选择
+export_success -> end

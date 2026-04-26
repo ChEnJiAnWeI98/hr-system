@@ -1,0 +1,47 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam ActivityBackgroundColor #e3f2fd
+skinparam ActivityBorderColor #90caf9
+skinparam ArrowColor #1976d2
+skinparam ActivityDiamondBackgroundColor #fff3e0
+skinparam ActivityDiamondBorderColor #ffb74d
+skinparam ActivityStartColor #388e3c
+skinparam ActivityEndColor #388e3c
+
+start
+
+:HR管理员进入编制管理页面;
+:系统显示编制计划列表\n（按年度/部门汇总）;
+
+fork
+  :点击【新增编制计划】;
+  :选择年度与部门;
+  :填写计划编制人数;
+  :点击【保存】;
+  if (系统校验数据) then (校验通过)
+    #d5e8d4:保存成功，列表刷新;
+  else (校验失败)
+    #fce4ec:提示错误信息\n返回填写;
+    :重新填写;
+    :点击【保存】;
+    #d5e8d4:保存成功，列表刷新;
+  endif
+fork again
+  :点击【编辑】按钮;
+  :修改编制人数;
+  :点击【保存】;
+  :系统校验并保存;
+  #d5e8d4:保存成功，列表刷新;
+fork again
+  :查看编制统计;
+  :系统实时计算各部门在编人数;
+  :显示编制总数、在编人数\n缺编数、超编数;
+  #fce4ec:系统自动标记超编/缺编状态\n（红色/橙色预警）;
+fork again
+  :选择导出年度;
+  :点击【导出】按钮;
+  #d5e8d4:系统生成 Excel 文件并下载;
+end fork
+
+stop
+@enduml

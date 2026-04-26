@@ -1,0 +1,54 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam ActivityBackgroundColor #e3f2fd
+skinparam ActivityBorderColor #1565c0
+skinparam ActivityDiamondBackgroundColor #fff3e0
+skinparam ActivityDiamondBorderColor #e65100
+skinparam ActivityStartColor #388e3c
+skinparam ActivityEndColor #388e3c
+skinparam ArrowColor #455a64
+skinparam ActivityFontSize 13
+
+start
+
+:进入部门管理页面;
+:系统展示树形部门列表\n（默认展开第一层）;
+
+fork
+  :用户浏览部门树\n展开/收起节点;
+fork again
+  :点击【新增部门】按钮;
+  :填写部门信息\n（名称、上级部门、负责人\n编制人数、成立时间、职能描述）;
+  if (信息填写完整？) then (是)
+    :系统保存新部门\n并刷新树形列表\n显示新增部门节点;
+  else (否)
+    :显示必填项提示\n停留在填写页面;
+    :重新填写信息;
+  endif
+fork again
+  :选择已有部门\n点击【编辑】;
+  :系统回显部门信息;
+  :修改部门信息;
+  :点击【保存】;
+  :树形列表更新\n显示修改后的部门名称;
+fork again
+  :选择已有部门\n点击【删除】;
+  :系统弹出确认提示;
+  if (该部门下有子部门\n或在职员工？) then (是)
+    :提示"存在子部门或在职员工\n无法删除，请先处理";
+  else (否)
+    if (用户确认删除？) then (确认)
+      :删除成功\n树形列表移除该部门节点;
+    else (取消)
+      :关闭确认弹窗\n保持列表不变;
+    endif
+  endif
+fork again
+  :选择已有部门\n修改【上级部门】字段;
+  :点击【保存】;
+  :树形结构重新调整\n部门节点移动到新位置;
+end fork
+
+stop
+
+@enduml

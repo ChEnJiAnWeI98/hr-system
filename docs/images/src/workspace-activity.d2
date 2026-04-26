@@ -1,0 +1,242 @@
+# 工作台活动图
+# 渲染命令：d2 -l elk workspace-activity.d2 workspace-activity.png
+# 适用场景：工作台首页的用户操作流程
+
+direction: down
+
+start: 用户登录系统 {
+  shape: oval
+  style.fill: "#e8f5e9"
+}
+
+show_workspace: 系统显示工作台首页 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+check_role: 判断用户角色 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+# 管理员/HR 分支
+show_admin_stats: 显示员工统计卡片\n(在职人数、部门分布等) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+# 所有角色共同内容
+show_common: 显示用户信息、天气\n快捷入口、日历、审批概况 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+auto_refresh_weather: 系统自动刷新天气信息 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+choose_action: 用户选择操作 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+# 自定义快捷入口分支
+click_customize: 点击【自定义快捷入口】 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+select_shortcuts: 选择要显示的快捷入口 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+save_shortcuts: 点击【保存】 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+shortcuts_success: 保存成功\n刷新快捷入口显示 {
+  shape: rectangle
+  style.fill: "#d5e8d4"
+}
+
+# 日程管理分支
+view_schedule: 查看日历中的日程 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+schedule_action: 选择日程操作 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+# 新增日程
+add_schedule_click: 点击【新增日程】 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+add_schedule_fill: 填写日程信息\n(标题、时间、提醒方式) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+add_schedule_submit: 点击【保存】 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+add_schedule_check: 数据验证 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+add_schedule_success: 保存成功\n刷新日历显示 {
+  shape: rectangle
+  style.fill: "#d5e8d4"
+}
+
+add_schedule_fail: 显示错误提示\n停留在表单 {
+  shape: rectangle
+  style.fill: "#fce4ec"
+}
+
+# 编辑日程
+edit_schedule_click: 点击日程卡片 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+edit_schedule_form: 修改日程信息 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+edit_schedule_submit: 点击【保存】 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+edit_schedule_check: 数据验证 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+edit_schedule_success: 更新成功\n刷新日历显示 {
+  shape: rectangle
+  style.fill: "#d5e8d4"
+}
+
+edit_schedule_fail: 显示错误提示\n停留在表单 {
+  shape: rectangle
+  style.fill: "#fce4ec"
+}
+
+# 删除日程
+delete_schedule_click: 点击【删除】按钮 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+delete_schedule_confirm: 二次确认弹窗 {
+  shape: diamond
+  style.fill: "#fff3e0"
+}
+
+delete_schedule_success: 删除成功\n刷新日历显示 {
+  shape: rectangle
+  style.fill: "#d5e8d4"
+}
+
+# 审批概况分支
+view_approval: 查看审批概况\n(待审批数量、最近审批) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+click_all_approval: 点击【全部审批】 {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+jump_approval_list: 跳转到审批列表页 {
+  shape: rectangle
+  style.fill: "#d5e8d4"
+}
+
+# 实时更新
+real_time_update: 系统实时更新数据\n(审批数量、日程提醒) {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+end: 结束 {
+  shape: oval
+  style.fill: "#e8f5e9"
+}
+
+# 主流程连接
+start -> show_workspace
+show_workspace -> check_role
+
+check_role -> show_admin_stats: 管理员/HR
+check_role -> show_common: 普通用户
+
+show_admin_stats -> show_common
+show_common -> auto_refresh_weather
+auto_refresh_weather -> choose_action
+
+# 操作选择分支
+choose_action -> click_customize: 自定义快捷入口
+choose_action -> view_schedule: 管理日程
+choose_action -> view_approval: 查看审批
+choose_action -> real_time_update: 继续浏览
+
+# 自定义快捷入口流程
+click_customize -> select_shortcuts
+select_shortcuts -> save_shortcuts
+save_shortcuts -> shortcuts_success
+shortcuts_success -> choose_action
+
+# 日程管理流程
+view_schedule -> schedule_action
+
+schedule_action -> add_schedule_click: 新增日程
+schedule_action -> edit_schedule_click: 编辑日程
+schedule_action -> delete_schedule_click: 删除日程
+schedule_action -> choose_action: 返回
+
+# 新增日程流程
+add_schedule_click -> add_schedule_fill
+add_schedule_fill -> add_schedule_submit
+add_schedule_submit -> add_schedule_check
+add_schedule_check -> add_schedule_success: 验证通过
+add_schedule_check -> add_schedule_fail: 验证失败
+add_schedule_fail -> add_schedule_fill: 重新填写
+add_schedule_success -> view_schedule
+
+# 编辑日程流程
+edit_schedule_click -> edit_schedule_form
+edit_schedule_form -> edit_schedule_submit
+edit_schedule_submit -> edit_schedule_check
+edit_schedule_check -> edit_schedule_success: 验证通过
+edit_schedule_check -> edit_schedule_fail: 验证失败
+edit_schedule_fail -> edit_schedule_form: 重新填写
+edit_schedule_success -> view_schedule
+
+# 删除日程流程
+delete_schedule_click -> delete_schedule_confirm
+delete_schedule_confirm -> delete_schedule_success: 确认删除
+delete_schedule_confirm -> view_schedule: 取消
+delete_schedule_success -> view_schedule
+
+# 审批概况流程
+view_approval -> click_all_approval
+click_all_approval -> jump_approval_list
+jump_approval_list -> end
+
+# 实时更新流程
+real_time_update -> end
