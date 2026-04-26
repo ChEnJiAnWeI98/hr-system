@@ -8,6 +8,9 @@
 
 <script setup lang="ts">
   import { useUserStore } from './store/modules/user'
+  import { useMenuStore } from './store/modules/menu'
+  import { router } from './router'
+  import { buildMenuTreeFromRoutes } from './router/guards/beforeEach'
   import zh from 'element-plus/es/locale/lang/zh-cn'
   import en from 'element-plus/es/locale/lang/en'
   import { systemUpgrade } from './utils/sys'
@@ -35,5 +38,15 @@
     setThemeTransitionClass(false)
     // 系统升级
     systemUpgrade()
+
+    // 🔐 保险措施:App 挂载时主动注册菜单,避免依赖 beforeEach 时序
+    // 配合 menuStore 关闭持久化,从根本上消除"首次登录菜单空白"的偶发问题
+    if (import.meta.env.VITE_USE_MOCK === 'true') {
+      const menuStore = useMenuStore()
+      if (menuStore.menuList.length === 0) {
+        const menuTree = buildMenuTreeFromRoutes(router)
+        menuStore.setMenuList(menuTree)
+      }
+    }
   })
 </script>

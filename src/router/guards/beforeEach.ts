@@ -29,7 +29,7 @@ const pendingLoading = ref(false)
  * 从已注册的路由中构建菜单树
  * 用于 Mock 模式，从 router.getRoutes() 获取完整路径的路由
  */
-function buildMenuTreeFromRoutes(router: Router): AppRouteRecord[] {
+export function buildMenuTreeFromRoutes(router: Router): AppRouteRecord[] {
   const allRoutes = router.getRoutes()
 
   // 静态路由名称列表（不应出现在菜单中的路由）

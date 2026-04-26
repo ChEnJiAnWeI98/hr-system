@@ -76,4 +76,10 @@ export const useMenuStore = defineStore('menuStore', () => {
     removeAllDynamicRoutes,
     clearRemoveRouteFns
   }
+}, {
+  // ⚠️ 禁用持久化
+  // 原因:menuList 里含路由 component 函数,JSON.stringify 会丢弃函数,
+  // 持久化后恢复出来的 menuList 是损坏的;且 menuList 应该每次从路由实时构建,
+  // 没必要也不能持久化。removeRouteFns 也同理。
+  persist: false
 })
