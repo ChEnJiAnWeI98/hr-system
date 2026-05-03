@@ -352,7 +352,11 @@ function generateEmployees(): Employee[] {
       ...salary,
 
       createTime: entryDate + ' 09:00:00',
-      updateTime: '2026-04-01 10:00:00'
+      updateTime: '2026-04-01 10:00:00',
+
+      // 招聘溯源：来源 Offer / 简历编号（反向追溯）
+      sourceOfferNo: `OF${entryDate.replace(/-/g, '')}${String(id).padStart(3, '0')}`,
+      sourceResumeNo: `RES${entryDate.replace(/-/g, '').slice(0, 6)}${String(id).padStart(3, '0')}`
     }
 
     employees.push(emp)

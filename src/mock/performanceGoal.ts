@@ -6,7 +6,10 @@ import type {
   PerformanceGoal,
   KeyResult,
   GoalProgressLog,
-  GoalTemplate
+  GoalTemplate,
+  GoalRevision,
+  RevisionSnapshot,
+  RevisionReasonCode
 } from '@/types/performanceGoal'
 import { createCrudMock } from '@/utils/crud/mockHelper'
 import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
@@ -14,6 +17,8 @@ import { alignEmployeeFields } from '@/utils/mock/alignEmployee'
 function buildKRs(items: Array<[string, string, string, number, number]>): KeyResult[] {
   return items.map(([desc, target, current, weight, progress]) => ({
     description: desc,
+    // 老数据默认 milestone（混合文本/数字，无法可靠归类，里程碑模式最宽松）
+    type: 'milestone',
     targetValue: target,
     currentValue: current,
     weight,
@@ -614,4 +619,266 @@ export function createGoalFromTemplateMock(templateId: number, overrides: Partia
   }
   all.push(newGoal)
   return newGoal
+}
+
+/* ========== 目标修订（v2.1 业界共识对齐：飞书/钉钉/Lattice）========== */
+
+/**
+ * 修订历史 mock 数据（演示用）
+ *
+ * 给目标 ID = 1 一条已生效的历史修订记录，用于"修订历史"Tab 展示。
+ */
+const initialRevisions: GoalRevision[] = [
+  {
+    id: 1,
+    goalId: 1,
+    status: 'approved',
+    before: {
+      goalTitle: 'Q2 提升用户活跃度',
+      goalDescription: '通过功能优化与运营动作，提升 DAU/MAU 水平',
+      weight: 40,
+      keyResults: [
+        {
+          description: 'DAU 提升至 12 万',
+          type: 'numeric',
+          targetValue: '120000',
+          currentValue: '95000',
+          weight: 50,
+          progress: 30
+        },
+        {
+          description: '功能 A 上线后留存率提升 5pp',
+          type: 'numeric',
+          targetValue: '5',
+          currentValue: '2',
+          weight: 50,
+          progress: 40
+        }
+      ]
+    },
+    after: {
+      goalTitle: 'Q2 提升用户活跃度',
+      goalDescription: '通过功能优化与运营动作，提升 DAU/MAU 水平（4 月调整：因竞品发力，目标下调）',
+      weight: 40,
+      keyResults: [
+        {
+          description: 'DAU 提升至 10 万（原 12 万，市场环境调整）',
+          type: 'numeric',
+          targetValue: '100000',
+          currentValue: '95000',
+          weight: 50,
+          progress: 30
+        },
+        {
+          description: '功能 A 上线后留存率提升 3pp（原 5pp，竞品挤压）',
+          type: 'numeric',
+          targetValue: '3',
+          currentValue: '2',
+          weight: 50,
+          progress: 40
+        }
+      ]
+    },
+    reasonCode: 'market_change',
+    reasonDetail: 'Q2 中期竞品 X 上线相似功能并大力投放，原 DAU 12w 目标过于激进。经评估下调至 10w，更符合实际',
+    applicantId: 1001,
+    applicantName: '张伟',
+    applyTime: '2026-04-15 10:30:00',
+    approverId: 2001,
+    approverName: '李部长',
+    approveTime: '2026-04-15 14:20:00',
+    approveComment: '同意调整，目标下调合理。后续需重点关注留存率指标'
+  }
+]
+
+export const goalRevisionMock = createCrudMock<GoalRevision>(initialRevisions, {
+  searchableFields: [],
+  sortField: 'id',
+  sortOrder: 'desc'
+})
+
+/* 把 initialRevisions 中已 approved 的历史挂回对应 goal 的 revisions 数组（演示用）*/
+;(function attachRevisionsToGoals() {
+  const goals = performanceGoalMock.getData()
+  for (const rev of initialRevisions) {
+    if (rev.status !== 'approved') continue
+    const g = goals.find((x) => x.id === rev.goalId)
+    if (!g) continue
+    g.revisions = g.revisions || []
+    g.revisions.push(rev)
+    g.revisionCount = (g.revisionCount || 0) + 1
+  }
+})()
+
+/**
+ * 提取目标当前快照（修订前内容）
+ */
+function extractSnapshot(goal: PerformanceGoal): RevisionSnapshot {
+  return {
+    goalTitle: goal.goalTitle,
+    goalDescription: goal.goalDescription,
+    weight: goal.weight,
+    keyResults: goal.keyResults ? JSON.parse(JSON.stringify(goal.keyResults)) : undefined
+  }
+}
+
+/**
+ * 提交目标修订申请
+ *
+ * 业务规则：
+ * - 目标必须 approvalStatus = 1（已批准）才能申请
+ * - 必须 frozen !== 1（未冻结）
+ * - revisionCount < 1（同周期最多 1 次）
+ * - 不能有 pendingRevision（一次只能进行中一个）
+ */
+export function submitRevisionMock(
+  goalId: number,
+  data: {
+    after: RevisionSnapshot
+    reasonCode: RevisionReasonCode
+    reasonDetail?: string
+    applicantId: number
+    applicantName: string
+  }
+) {
+  const goal = performanceGoalMock.getDetail(goalId)
+  if (!goal) throw new Error('目标不存在')
+  if (goal.approvalStatus !== 1) throw new Error('仅已批准的目标可申请修订')
+  if (goal.frozen === 1) throw new Error('目标已冻结，不可修订')
+  if ((goal.revisionCount || 0) >= 1) throw new Error('本周期已用完修订机会（最多 1 次）')
+  if (goal.pendingRevision) throw new Error('已有进行中的修订申请，请等待审批')
+  if (data.reasonCode === 'other' && !data.reasonDetail?.trim()) {
+    throw new Error('选择"其他"时必须填写原因说明')
+  }
+
+  const all = goalRevisionMock.getData()
+  const nextId = Math.max(...all.map((r) => r.id), 0) + 1
+  const now = new Date().toLocaleString('zh-CN')
+
+  const newRev: GoalRevision = {
+    id: nextId,
+    goalId,
+    status: 'pending',
+    before: extractSnapshot(goal),
+    after: data.after,
+    reasonCode: data.reasonCode,
+    reasonDetail: data.reasonDetail,
+    applicantId: data.applicantId,
+    applicantName: data.applicantName,
+    applyTime: now,
+    approverId: goal.approverId,
+    approverName: goal.approverName
+  }
+
+  all.push(newRev)
+  goal.pendingRevision = newRev
+  goal.updateTime = now
+  performanceGoalMock.update(goal)
+  return newRev
+}
+
+/**
+ * 审批通过修订
+ *
+ * 业务规则：
+ * - 修订内容生效（覆盖 goal 的对应字段）
+ * - revisionCount + 1
+ * - 移到 revisions 历史，清掉 pendingRevision
+ */
+export function approveRevisionMock(
+  revisionId: number,
+  data: {
+    approverId: number
+    approverName: string
+    approveComment?: string
+  }
+) {
+  const rev = goalRevisionMock.getDetail(revisionId)
+  if (!rev) throw new Error('修订申请不存在')
+  if (rev.status !== 'pending') throw new Error('仅 pending 状态可审批')
+
+  const goal = performanceGoalMock.getDetail(rev.goalId)
+  if (!goal) throw new Error('目标不存在')
+
+  const now = new Date().toLocaleString('zh-CN')
+
+  // 修订生效：覆盖目标字段
+  goal.goalTitle = rev.after.goalTitle
+  goal.goalDescription = rev.after.goalDescription
+  goal.weight = rev.after.weight
+  if (rev.after.keyResults) {
+    goal.keyResults = JSON.parse(JSON.stringify(rev.after.keyResults))
+  }
+
+  // 修订状态机
+  rev.status = 'approved'
+  rev.approverId = data.approverId
+  rev.approverName = data.approverName
+  rev.approveTime = now
+  rev.approveComment = data.approveComment
+
+  // 挂到 goal 历史
+  goal.revisions = goal.revisions || []
+  goal.revisions.unshift(rev)
+  goal.revisionCount = (goal.revisionCount || 0) + 1
+  goal.pendingRevision = undefined
+  goal.updateTime = now
+
+  goalRevisionMock.update(rev)
+  performanceGoalMock.update(goal)
+  return { revision: rev, goal }
+}
+
+/**
+ * 驳回修订
+ *
+ * 业务规则：
+ * - 不修改 goal 内容（保持原状）
+ * - revisionCount 不变（驳回不计入）
+ * - 移到 revisions 历史（rejected 状态），清掉 pendingRevision
+ * - 员工可以重新申请（revisionCount 仍 0）
+ */
+export function rejectRevisionMock(
+  revisionId: number,
+  data: {
+    approverId: number
+    approverName: string
+    approveComment: string
+  }
+) {
+  if (!data.approveComment?.trim()) throw new Error('驳回时必须填写审批意见')
+
+  const rev = goalRevisionMock.getDetail(revisionId)
+  if (!rev) throw new Error('修订申请不存在')
+  if (rev.status !== 'pending') throw new Error('仅 pending 状态可审批')
+
+  const goal = performanceGoalMock.getDetail(rev.goalId)
+  if (!goal) throw new Error('目标不存在')
+
+  const now = new Date().toLocaleString('zh-CN')
+
+  rev.status = 'rejected'
+  rev.approverId = data.approverId
+  rev.approverName = data.approverName
+  rev.approveTime = now
+  rev.approveComment = data.approveComment
+
+  goal.revisions = goal.revisions || []
+  goal.revisions.unshift(rev)
+  goal.pendingRevision = undefined
+  goal.updateTime = now
+
+  goalRevisionMock.update(rev)
+  performanceGoalMock.update(goal)
+  return { revision: rev, goal }
+}
+
+/**
+ * 拉取目标的修订历史（含 pending）
+ */
+export function getRevisionHistoryMock(goalId: number): GoalRevision[] {
+  const all = goalRevisionMock.getData()
+  return all
+    .filter((r) => r.goalId === goalId)
+    .sort((a, b) => (a.applyTime > b.applyTime ? -1 : 1))
 }

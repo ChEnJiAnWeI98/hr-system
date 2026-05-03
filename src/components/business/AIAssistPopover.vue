@@ -2,7 +2,7 @@
   <el-popover
     :visible="visible"
     placement="bottom-end"
-    :width="380"
+    :width="420"
     trigger="click"
     @hide="handleClosed"
   >
@@ -12,8 +12,25 @@
 
     <div class="ai-popover-wrapper">
       <div class="ai-popover-head">
-        <span class="ai-popover-title">✨ {{ abilityName }}</span>
+        <span class="ai-popover-title">
+          <el-icon><ArtAiIcon /></el-icon>
+          {{ abilityName }}
+        </span>
         <el-button link size="small" @click="handleClose">关闭</el-button>
+      </div>
+
+      <!-- 风格切换（仅 comment_polish 显示）-->
+      <div v-if="showToneSwitch" class="ai-popover-tone">
+        <span class="ai-popover-tone-label">风格</span>
+        <el-radio-group
+          v-model="currentTone"
+          size="small"
+          @change="reinvoke"
+        >
+          <el-radio-button value="professional">专业</el-radio-button>
+          <el-radio-button value="concise">简洁</el-radio-button>
+          <el-radio-button value="constructive">建设性</el-radio-button>
+        </el-radio-group>
       </div>
 
       <div v-if="calling" class="ai-popover-loading">
@@ -29,6 +46,9 @@
         <div class="ai-popover-section">
           <div class="ai-popover-label">AI 建议</div>
           <div class="ai-popover-new">{{ output }}</div>
+        </div>
+        <div v-if="showToneSwitch" class="ai-popover-disclaimer">
+          ⚠️ AI 仅做风格润色，不会补充原稿没有的事实。请采纳前核对内容是否符合您的本意。
         </div>
         <div class="ai-popover-actions">
           <el-button size="small" @click="handleReject">放弃</el-button>
@@ -83,25 +103,44 @@ const output = ref('')
 const recordId = ref<number | null>(null)
 const calling = ref(false)
 
+// 风格切换（仅 comment_polish 用，默认 professional）
+const showToneSwitch = computed(() => props.abilityCode === 'comment_polish')
+const currentTone = ref<'professional' | 'concise' | 'constructive'>('professional')
+
+const buildInput = (): string => {
+  // 仅 comment_polish 在 input 中编码 tone（mock 阶段；真接入 LLM 时改为单独参数）
+  if (showToneSwitch.value) {
+    return `[tone:${currentTone.value}]\n${props.inputText}`
+  }
+  return props.inputText
+}
+
+const invoke = async () => {
+  if (!props.inputText.trim()) return
+  calling.value = true
+  output.value = ''
+  recordId.value = null
+  try {
+    const res: any = await invokeAIAbility(
+      props.abilityCode,
+      buildInput(),
+      props.operatorName,
+      props.targetEmployee
+    )
+    output.value = res.data.output
+    recordId.value = res.data.recordId
+  } finally {
+    calling.value = false
+  }
+}
+
+const reinvoke = () => invoke()
+
 // 打开时自动调用
 watch(visible, async (v) => {
   if (v) {
-    output.value = ''
-    recordId.value = null
-    if (!props.inputText.trim()) return
-    calling.value = true
-    try {
-      const res: any = await invokeAIAbility(
-        props.abilityCode,
-        props.inputText,
-        props.operatorName,
-        props.targetEmployee
-      )
-      output.value = res.data.output
-      recordId.value = res.data.recordId
-    } finally {
-      calling.value = false
-    }
+    if (showToneSwitch.value) currentTone.value = 'professional'
+    await invoke()
   }
 })
 
@@ -148,6 +187,31 @@ const handleReject = async () => {
     font-size: 14px;
     color: #303133;
   }
+}
+
+.ai-popover-tone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #f5f7fa;
+  border-radius: 4px;
+
+  .ai-popover-tone-label {
+    font-size: 12px;
+    color: #909399;
+    flex-shrink: 0;
+  }
+}
+
+.ai-popover-disclaimer {
+  padding: 6px 8px;
+  background: #fdf6ec;
+  border-left: 2px solid #e6a23c;
+  border-radius: 2px;
+  font-size: 11px;
+  color: #b88230;
+  line-height: 1.5;
 }
 
 .ai-popover-loading {

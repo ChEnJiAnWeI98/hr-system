@@ -176,11 +176,11 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import ModuleTabBar from '@/views/performance/_shared/ModuleTabBar.vue'
+import ModuleTabBar from '@/components/business/ModuleTabBar.vue'
 
 const goalGroupTabs = [
   { label: '目标管理', path: '/perf/goal' },
-  { label: '目标对齐视图', path: '/perf/goal-alignment/x' }
+  { label: '目标对齐视图', path: '/perf/goal-alignment' }
 ]
 import {
   getOKRTree,

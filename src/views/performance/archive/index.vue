@@ -1,6 +1,6 @@
 <template>
   <div class="perf-archive-container">
-    <el-tabs v-model="activeTab" class="archive-tabs">
+    <PageTabs v-model="activeTab" class="archive-tabs">
       <!-- Tab 1: 档案列表 -->
       <el-tab-pane label="档案列表" name="list">
         <el-card class="filter-card">
@@ -126,7 +126,7 @@
           <el-empty v-if="attentionList.length === 0" description="暂无需关注员工" />
         </el-card>
       </el-tab-pane>
-    </el-tabs>
+    </PageTabs>
 
     <!-- 员工画像弹窗 -->
     <el-dialog v-model="profileVisible" :title="`${profileData?.employeeName || ''} · 绩效画像`" width="860px" top="5vh">
@@ -317,31 +317,9 @@ onMounted(() => fetchData())
   flex-direction: column;
 }
 
-.archive-tabs {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-
-  :deep(.el-tabs__header) {
-    margin-bottom: 16px;
-    background: #fff;
-    border-radius: 12px;
-    padding: 4px 16px;
-  }
-  :deep(.el-tabs__nav-wrap::after) {
-    display: none;
-  }
-  :deep(.el-tabs__content) {
-    flex: 1;
-    overflow: hidden;
-  }
-  :deep(.el-tab-pane) {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
+/* el-tab-pane 内部布局：筛选卡 + 数据卡 之间 16px 间距 */
+.archive-tabs :deep(.el-tab-pane) {
+  gap: 16px;
 }
 
 .filter-card,

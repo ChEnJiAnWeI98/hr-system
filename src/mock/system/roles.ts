@@ -51,8 +51,8 @@ export const MENU_DEFINITIONS: MenuDefinition[] = [
   { code: 'comp:structure', name: '薪酬体系', groupCode: 'comp', groupName: '薪酬管理', path: '/comp/structure' },
   { code: 'comp:payroll', name: '薪资核算', groupCode: 'comp', groupName: '薪酬管理', path: '/comp/payroll' },
   { code: 'comp:adjustment', name: '调薪管理', groupCode: 'comp', groupName: '薪酬管理', path: '/comp/adjustment' },
-  { code: 'comp:tax', name: '个税管理', groupCode: 'comp', groupName: '薪酬管理', path: '/comp/tax' },
-  { code: 'comp:welfare', name: '福利管理', groupCode: 'comp', groupName: '薪酬管理', path: '/comp/welfare' },
+  { code: 'comp:tax', name: '个税管理', groupCode: 'comp', groupName: '薪酬管理', path: '/comp/tax-bracket' },
+  { code: 'comp:welfare', name: '福利管理', groupCode: 'comp', groupName: '薪酬管理', path: '/comp/welfare-program' },
   { code: 'comp:payslip', name: '员工工资条', groupCode: 'comp', groupName: '薪酬管理', path: '/comp/payslip', isCore: true },
   { code: 'comp:report', name: '薪酬报表', groupCode: 'comp', groupName: '薪酬管理', path: '/comp/report' },
 

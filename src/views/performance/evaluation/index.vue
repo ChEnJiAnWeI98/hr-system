@@ -199,12 +199,16 @@
                 <el-button
                   link
                   type="primary"
-                  :disabled="!fillComment.trim()"
+                  :disabled="fillComment.trim().length < 5"
                   @click="aiPolishVisible = true"
                 >
-                  ✨ AI 优化评语
+                  <el-icon><ArtAiIcon /></el-icon>
+                  AI 优化评语
                 </el-button>
               </AIAssistPopover>
+              <span v-if="fillComment.trim().length < 5" class="ai-trigger-hint">
+                原稿至少 5 字才能调用 AI
+              </span>
             </div>
           </el-form-item>
         </el-form>
@@ -271,7 +275,8 @@
                 style="margin-left: 8px"
                 @click="openDemoCommentPolish(n.comment)"
               >
-                ✨ AI 优化（演示）
+                <el-icon><ArtAiIcon /></el-icon>
+                AI 优化（演示）
               </el-button>
             </div>
           </el-collapse-item>
@@ -297,15 +302,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import ModuleTabBar from '@/views/performance/_shared/ModuleTabBar.vue'
+import ModuleTabBar from '@/components/business/ModuleTabBar.vue'
 import AIAssistPopover from '@/components/business/AIAssistPopover.vue'
 import AIAssistDialog from '@/components/business/AIAssistDialog.vue'
 
 const evalGroupTabs = [
   { label: '绩效评估', path: '/perf/evaluation' },
-  { label: '360 度评估', path: '/perf/review-360/x' }
+  { label: '360 度评估', path: '/perf/review-360' }
 ]
 import {
   getPerformanceEvaluationList,
@@ -373,6 +378,12 @@ const canFillNode = (row: PerformanceEvaluation): boolean => {
 /* ========== 填写评分 ========== */
 const fillDialogVisible = ref(false)
 const aiPolishVisible = ref(false)
+
+// el-popover 是 Teleport 到 body 的，外层 Dialog 关闭不会自动连带关掉 Popover
+// 需要手动联动：评分弹窗关闭时同步关掉 AI 优化 Popover
+watch(fillDialogVisible, (v) => {
+  if (!v) aiPolishVisible.value = false
+})
 
 // HR 视角：在评估详情里对已有评语做 AI 优化演示（只展示不替换原数据）
 const aiDemoVisible = ref(false)
@@ -601,5 +612,11 @@ onMounted(() => fetchData())
   border-radius: 6px;
   font-size: 13px;
   color: #409eff;
+}
+
+.ai-trigger-hint {
+  font-size: 12px;
+  color: #909399;
+  margin-left: 12px;
 }
 </style>

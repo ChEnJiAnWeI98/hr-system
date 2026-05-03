@@ -1,6 +1,6 @@
 <template>
   <div class="perf-calib-container">
-    <el-tabs v-model="activeTab" class="calib-tabs">
+    <PageTabs v-model="activeTab" class="calib-tabs">
       <!-- Tab 1: 强制分布看板 -->
       <el-tab-pane label="分布看板" name="distribution">
         <el-card class="filter-card">
@@ -211,7 +211,7 @@
           </el-table>
         </el-card>
       </el-tab-pane>
-    </el-tabs>
+    </PageTabs>
 
     <!-- 调档弹窗 -->
     <el-dialog v-model="adjustDialogVisible" title="调整等级" width="520px">

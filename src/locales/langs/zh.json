@@ -202,11 +202,6 @@
     "gohome": "返回首页"
   },
   "menus": {
-    "permissionTemplate": {
-      "title": "权限管理",
-      "role": "角色管理",
-      "menu": "菜单管理"
-    },
     "attendance": {
       "title": "考勤与假期",
       "rule": "考勤规则",
@@ -251,6 +246,9 @@
       "fieldChangeLog": "字段变更日志",
       "notification": "消息通知配置",
       "param": "系统参数设置",
+      "paramSecurity": "安全配置",
+      "paramBusiness": "业务配置",
+      "paramNotification": "通知配置",
       "approvalTemplate": "审批模板",
       "approvalDesigner": "流程设计器",
       "approvalInstance": "审批实例",
@@ -306,9 +304,12 @@
       "resumeDetail": "候选人详情",
       "aiMatching": "AI 智能匹配",
       "interview": "面试管理",
+      "interviewStats": "面试官效率",
       "offer": "Offer 管理",
       "onboarding": "入职办理",
       "backgroundCheck": "背调管理",
+      "backgroundCheckPackage": "背调套餐",
+      "backgroundCheckCost": "费用统计",
       "automation": "自动化规则",
       "budget": "招聘预算",
       "talentPool": "人才库",
@@ -324,8 +325,11 @@
       "payroll": "薪资核算",
       "payslip": "员工工资条",
       "tax": "个税管理",
+      "taxDeduction": "专项附加扣除",
+      "taxSettlement": "年度汇算",
       "adjustment": "调薪管理",
       "welfare": "福利管理",
+      "welfareGrant": "发放记录",
       "report": "薪酬报表"
     },
     "social": {
@@ -348,10 +352,14 @@
       "archive": "绩效档案",
       "oneOnOne": "1on1 反馈",
       "badges": "徽章认可",
+      "badgesQuota": "颁发配额",
+      "badgesAward": "颁发记录",
+      "badgesRule": "奖金联动规则",
       "pip": "PIP 改进",
       "appeal": "绩效申诉",
       "template": "评估模板",
       "applyRules": "结果应用",
+      "applyRulesRecord": "执行记录",
       "tasks": "绩效任务"
     },
     "insight": {

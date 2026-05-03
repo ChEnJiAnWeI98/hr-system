@@ -77,7 +77,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import ModuleTabBar from '@/views/recruitment/_shared/ModuleTabBar.vue'
+import ModuleTabBar from '@/components/business/ModuleTabBar.vue'
 import { getDemandCompletion } from '@/api/recruitmentAnalytics'
 import type { DemandCompletionRow, AnalyticsPeriod } from '@/types/recruitmentAnalytics'
 
@@ -85,8 +85,8 @@ defineOptions({ name: 'RecruitmentDemandCompletion' })
 
 const demandGroupTabs = [
   { label: '我的招聘需求', path: '/recruit/demand' },
-  { label: 'HR 招聘需求池', path: '/recruit/demand-pool/x' },
-  { label: '完成率监控', path: '/recruit/demand-completion/x' }
+  { label: 'HR 招聘需求池', path: '/recruit/demand-pool' },
+  { label: '完成率监控', path: '/recruit/demand-completion' }
 ]
 
 const queryParams = reactive({

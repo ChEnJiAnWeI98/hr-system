@@ -14,14 +14,13 @@
             <el-input v-model="queryParams.positionName" placeholder="请输入岗位" style="width: 200px" clearable />
           </el-form-item>
           <el-form-item label="状态">
-            <el-select v-model="queryParams.status" placeholder="选择状态" style="width: 140px" clearable>
-              <el-option label="待审批" :value="1" />
-              <el-option label="已批准" :value="2" />
-              <el-option label="审批拒绝" :value="3" />
-              <el-option label="已发送" :value="4" />
-              <el-option label="候选人接受" :value="5" />
-              <el-option label="候选人拒绝" :value="6" />
-              <el-option label="已失效" :value="7" />
+            <el-select v-model="queryParams.status" placeholder="全部" style="width: 140px" clearable>
+              <el-option
+                v-for="opt in statusFilterOptions"
+                :key="opt.value"
+                :label="opt.label"
+                :value="opt.value"
+              />
             </el-select>
           </el-form-item>
           <el-form-item label=" ">
@@ -36,12 +35,28 @@
 
     <!-- 数据卡片 -->
     <el-card class="data-card">
+      <!-- 状态 Tab 切换（单独一行，业界对标 Moka 设计）-->
+      <PageTabs v-model="activeTab" class="status-tabs">
+        <el-tab-pane name="active">
+          <template #label>
+            <span>进行中</span>
+            <el-tag size="small" type="primary" effect="plain" round style="margin-left: 6px">
+              {{ tabCounts.active }}
+            </el-tag>
+          </template>
+        </el-tab-pane>
+        <el-tab-pane name="completed">
+          <template #label>
+            <span>已结束</span>
+            <el-tag size="small" type="info" effect="plain" round style="margin-left: 6px">
+              {{ tabCounts.completed }}
+            </el-tag>
+          </template>
+        </el-tab-pane>
+      </PageTabs>
+
       <div class="table-header">
         <div class="header-buttons">
-          <el-button type="primary" @click="handleAdd">
-            <el-icon><Plus /></el-icon>
-            创建 Offer
-          </el-button>
           <el-button type="danger" :disabled="selectedIds.length === 0" @click="handleBatchDelete">
             批量删除
           </el-button>
@@ -49,36 +64,60 @@
       </div>
 
       <div class="table-container">
-        <el-table :data="tableData" height="100%" style="width: 100%" @selection-change="handleSelectionChange">
-          <el-table-column type="selection" min-width="5%" />
-          <el-table-column prop="offerNo" label="Offer 编号" min-width="11%" />
-          <el-table-column prop="candidateName" label="候选人" min-width="8%" />
-          <el-table-column prop="positionName" label="入职岗位" min-width="12%" />
-          <el-table-column prop="departmentName" label="部门" min-width="9%" />
-          <el-table-column label="薪资/试用期" min-width="12%">
+        <el-table :data="filteredTableData" height="100%" style="width: 100%" @selection-change="handleSelectionChange">
+          <el-table-column type="selection" width="48" />
+          <el-table-column prop="offerNo" label="Offer 编号" min-width="140" />
+          <el-table-column prop="candidateName" label="候选人" min-width="100" />
+          <el-table-column prop="positionName" label="入职岗位" min-width="160" show-overflow-tooltip />
+          <el-table-column prop="departmentName" label="部门" min-width="140" show-overflow-tooltip />
+          <el-table-column label="薪资/试用期" min-width="150">
             <template #default="{ row }">
               <div>{{ row.salary }}</div>
               <div class="sub">试用期 {{ row.probationPeriod }} 个月</div>
             </template>
           </el-table-column>
-          <el-table-column label="预计入职" min-width="10%">
+          <!-- 进行中 Tab 才显示：Compa-Ratio / 状态停留 / 预计入职 -->
+          <el-table-column v-if="activeTab === 'active'" label="Compa-Ratio" min-width="120">
+            <template #default="{ row }">
+              <el-tooltip placement="top">
+                <template #content>
+                  <div>Compa-Ratio = 候选人薪资 / 同岗中位数</div>
+                  <div>1.0 = 中位 · &gt;1.1 偏高 · &gt;1.25 风险 · &lt;0.85 偏低</div>
+                </template>
+                <span :class="['compa-ratio', getCompaRatioClass(row)]">
+                  {{ getCompaRatio(row) }}
+                </span>
+              </el-tooltip>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="activeTab === 'active'" label="状态停留" min-width="100">
+            <template #default="{ row }">
+              <span :class="['status-duration', getDurationClass(row)]">
+                {{ getStatusDuration(row) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="activeTab === 'active'" label="预计入职" min-width="120">
             <template #default="{ row }">{{ row.expectedJoinDate }}</template>
           </el-table-column>
-          <el-table-column label="版本" min-width="6%">
-            <template #default="{ row }">v{{ row.version || 1 }}</template>
+
+          <!-- 已结束 Tab 才显示：结束时间 -->
+          <el-table-column v-if="activeTab === 'completed'" label="结束时间" min-width="180">
+            <template #default="{ row }">{{ getEndTime(row) }}</template>
           </el-table-column>
-          <el-table-column label="状态" min-width="10%">
+
+          <el-table-column label="状态" min-width="120">
             <template #default="{ row }">
               <el-tag v-if="row.status === 1" type="warning">待审批</el-tag>
-              <el-tag v-else-if="row.status === 2" type="info">已批准</el-tag>
+              <el-tag v-else-if="row.status === 2" type="info">审批通过</el-tag>
               <el-tag v-else-if="row.status === 3" type="danger">审批拒绝</el-tag>
               <el-tag v-else-if="row.status === 4" type="primary">已发送</el-tag>
               <el-tag v-else-if="row.status === 5" type="success">已接受</el-tag>
               <el-tag v-else-if="row.status === 6" type="danger">候选人拒绝</el-tag>
-              <el-tag v-else-if="row.status === 7" type="info">已失效</el-tag>
+              <el-tag v-else-if="row.status === 7" type="info">已撤回</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" min-width="24%" fixed="right">
+          <el-table-column label="操作" width="240" fixed="right">
             <template #default="{ row }">
               <el-button link @click="handleView(row)">详情</el-button>
               <el-button v-if="row.status === 1" link type="primary" @click="handleApprove(row)">审批</el-button>
@@ -95,7 +134,7 @@
               <el-button v-if="row.status === 2" link type="success" @click="handleESign(row)">
                 发起电子签
               </el-button>
-              <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+              <el-button v-if="isDeletable(row)" link type="danger" @click="handleDelete(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -118,17 +157,17 @@
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item label="候选人姓名" prop="candidateName">
-              <CandidatePicker v-model="formData.candidateName" @select="onCandidatePick" />
+              <el-input v-model="formData.candidateName" disabled />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="入职岗位" prop="positionName">
-              <el-input v-model="formData.positionName" placeholder="入职岗位" />
+              <el-input v-model="formData.positionName" disabled />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="入职部门" prop="departmentName">
-              <el-input v-model="formData.departmentName" placeholder="入职部门" />
+              <el-input v-model="formData.departmentName" disabled />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -297,7 +336,7 @@
         <el-descriptions-item label="反馈截止">{{ detailData.feedbackDeadline || '-' }}</el-descriptions-item>
         <el-descriptions-item label="状态">
           <el-tag v-if="detailData.status === 1" type="warning">待审批</el-tag>
-          <el-tag v-else-if="detailData.status === 2" type="info">已批准</el-tag>
+          <el-tag v-else-if="detailData.status === 2" type="info">审批通过</el-tag>
           <el-tag v-else-if="detailData.status === 3" type="danger">审批拒绝</el-tag>
           <el-tag v-else-if="detailData.status === 4" type="primary">已发送</el-tag>
           <el-tag v-else-if="detailData.status === 5" type="success">已接受</el-tag>
@@ -323,13 +362,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
-import type { Offer, OfferListParams, Resume } from '@/types/recruitment'
+import type { Offer, OfferListParams } from '@/types/recruitment'
 import { OFFER_REJECT_REASON_OPTIONS } from '@/types/recruitment'
-import CandidatePicker from '@/views/recruitment/_shared/CandidatePicker.vue'
 import type { OfferTemplate } from '@/types/recruitmentConfig'
 import {
   getOfferList,
@@ -353,13 +390,95 @@ const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
 
-// 选中简历池候选人 → 预填关联字段
-const onCandidatePick = (r: Resume) => {
-  formData.candidateName = r.candidateName
-  if (r.position) formData.positionName = r.position
-  formData.resumeId = r.id
-  if (r.resumeNo) formData.resumeNo = r.resumeNo
+/* ============ Offer 列表页 · 业界共识对齐改造 ============ */
+
+/**
+ * 岗位中位数映射（mock 阶段简化版 · 真接入由薪酬系统提供）
+ * 单位：元/月
+ */
+const POSITION_MID_SALARY_MAP: Record<string, number> = {
+  前端: 22000,
+  Java: 25000,
+  后端: 25000,
+  UI: 18000,
+  设计: 18000,
+  产品: 23000,
+  测试: 16000,
+  运维: 18000,
+  人力: 12000,
+  人事: 12000,
+  市场: 13000
 }
+
+const getMidSalary = (position: string): number => {
+  if (!position) return 18000
+  for (const key in POSITION_MID_SALARY_MAP) {
+    if (position.includes(key)) return POSITION_MID_SALARY_MAP[key]
+  }
+  return 18000
+}
+
+const parseSalary = (salaryStr: string | number | undefined): number => {
+  if (!salaryStr) return 0
+  const n = Number(salaryStr)
+  return isNaN(n) ? 0 : n
+}
+
+const getCompaRatio = (row: any): string => {
+  const sal = parseSalary(row.offerSalary || row.salary)
+  const mid = getMidSalary(row.position || row.positionName || '')
+  if (!sal || !mid) return '—'
+  return (sal / mid).toFixed(2)
+}
+
+const getCompaRatioClass = (row: any): string => {
+  const sal = parseSalary(row.offerSalary || row.salary)
+  const mid = getMidSalary(row.position || row.positionName || '')
+  if (!sal || !mid) return ''
+  const ratio = sal / mid
+  if (ratio > 1.25) return 'compa-danger'
+  if (ratio > 1.1) return 'compa-warning'
+  if (ratio < 0.85) return 'compa-low'
+  return 'compa-normal'
+}
+
+const getStatusDuration = (row: any): string => {
+  const updateTime = row.updateTime || row.createTime
+  if (!updateTime) return '—'
+  const updated = new Date(String(updateTime).replace(/-/g, '/'))
+  const days = Math.floor((Date.now() - updated.getTime()) / (24 * 3600 * 1000))
+  if (days === 0) return '今日'
+  if (days === 1) return '1 天'
+  return `${days} 天`
+}
+
+const getDurationClass = (row: any): string => {
+  const updateTime = row.updateTime || row.createTime
+  if (!updateTime) return ''
+  const updated = new Date(String(updateTime).replace(/-/g, '/'))
+  const days = Math.floor((Date.now() - updated.getTime()) / (24 * 3600 * 1000))
+  // 终态状态不警告（已接受/已拒绝/已撤回）
+  if ([5, 6, 7].includes(row.status)) return ''
+  if (days >= 7) return 'duration-danger'
+  if (days >= 3) return 'duration-warning'
+  return ''
+}
+
+/**
+ * 已结束 Tab 的结束时间（按状态取不同字段，避免"预计入职"在未入职 Offer 上的语义错位）
+ * - 已接受 (5)：实际入职日期 expectedJoinDate
+ * - 候选人拒绝 (6)：候选人响应时间 responseTime
+ * - 审批拒绝 (3)：审批时间 approveTime
+ * - 已撤回 (7)：updateTime（撤回时间）
+ */
+const getEndTime = (row: any): string => {
+  if (row.status === 5) return row.expectedJoinDate ? `${row.expectedJoinDate}（已入职）` : '—'
+  if (row.status === 6) return row.responseTime || '—'
+  if (row.status === 3) return row.approveTime || '—'
+  if (row.status === 7) return row.updateTime || '—'
+  return '—'
+}
+
 
 const queryParams = reactive<OfferListParams>({
   offerNo: '',
@@ -370,9 +489,82 @@ const queryParams = reactive<OfferListParams>({
   pageSize: 10
 })
 
-const tableData = ref<Offer[]>([])
-const total = ref(0)
+/* 全量数据（前端过滤 + 前端分页 · 业界对标 Greenhouse Activity Report）*/
+const allTableData = ref<Offer[]>([])
 const selectedIds = ref<number[]>([])
+
+/* ============ 状态 Tab 切换（业界对标 Workday Inbox 待办/已处理 2-Tab）============ */
+const activeTab = ref<'active' | 'completed'>('active')
+
+// Tab 切换重置到第 1 页 + 清空 status 下拉（避免跨 Tab 错位）
+watch(activeTab, () => {
+  queryParams.page = 1
+  queryParams.status = null
+})
+
+/**
+ * 进行中 = 状态 1/2/4（待审批 / 审批通过 / 已发送）
+ * 已结束 = 状态 3/5/6/7（审批拒绝 / 已接受 / 候选人拒绝 / 已撤回）
+ */
+const ACTIVE_STATUSES = [1, 2, 4]
+const COMPLETED_STATUSES = [3, 5, 6, 7]
+
+/* 状态筛选下拉选项 · 按 Tab 收窄（业界 Greenhouse / Moka 一致）*/
+const STATUS_LABELS: Record<number, string> = {
+  1: '待审批',
+  2: '审批通过',
+  3: '审批拒绝',
+  4: '已发送',
+  5: '已接受',
+  6: '候选人拒绝',
+  7: '已撤回'
+}
+const statusFilterOptions = computed(() => {
+  const arr = activeTab.value === 'active' ? ACTIVE_STATUSES : COMPLETED_STATUSES
+  return arr.map((v) => ({ value: v, label: STATUS_LABELS[v] }))
+})
+
+/* 1. 按 Tab 过滤 */
+const tabFilteredData = computed(() => {
+  const statuses = activeTab.value === 'active' ? ACTIVE_STATUSES : COMPLETED_STATUSES
+  return allTableData.value.filter((r) => statuses.includes(r.status))
+})
+
+/* 2. 按搜索条件过滤（前端实现 · 已无后端搜索）*/
+const searchedData = computed(() => {
+  let list = tabFilteredData.value
+  if (queryParams.offerNo) {
+    const kw = queryParams.offerNo.trim().toLowerCase()
+    list = list.filter((r) => r.offerNo?.toLowerCase().includes(kw))
+  }
+  if (queryParams.candidateName) {
+    const kw = queryParams.candidateName.trim()
+    list = list.filter((r) => r.candidateName?.includes(kw))
+  }
+  if (queryParams.positionName) {
+    const kw = queryParams.positionName.trim()
+    list = list.filter((r) => r.positionName?.includes(kw))
+  }
+  if (queryParams.status != null && queryParams.status !== '') {
+    list = list.filter((r) => r.status === Number(queryParams.status))
+  }
+  return list
+})
+
+/* 3. 按当前页切片 */
+const filteredTableData = computed(() => {
+  const start = (queryParams.page - 1) * queryParams.pageSize
+  return searchedData.value.slice(start, start + queryParams.pageSize)
+})
+
+/* 总数（基于过滤后） */
+const total = computed(() => searchedData.value.length)
+
+/* Tab 计数（基于全量 · 不受搜索影响）*/
+const tabCounts = computed(() => ({
+  active: allTableData.value.filter((r) => ACTIVE_STATUSES.includes(r.status)).length,
+  completed: allTableData.value.filter((r) => COMPLETED_STATUSES.includes(r.status)).length
+}))
 
 // 创建/编辑
 const dialogVisible = ref(false)
@@ -464,22 +656,28 @@ const handleSelectTemplate = (id: number | undefined) => {
   formData.offerTemplateName = t?.templateName
 }
 
-// 列表
+// 列表（前端过滤 + 分页：一次拉全量，避免后端分页与前端 Tab 过滤错位）
 const getList = async () => {
   try {
-    const res = await getOfferList(queryParams)
+    const res = await getOfferList({
+      offerNo: '',
+      candidateName: '',
+      positionName: '',
+      status: null,
+      page: 1,
+      pageSize: 10000 // 全量
+    })
     if (res.code === 200) {
-      tableData.value = res.data.list
-      total.value = res.data.total
+      allTableData.value = res.data.list
     }
   } catch {
     ElMessage.error('获取 Offer 列表失败')
   }
 }
 
+// 搜索/重置只是改 queryParams，computed 自动重新计算
 const handleSearch = () => {
   queryParams.page = 1
-  getList()
 }
 
 const handleReset = () => {
@@ -488,7 +686,6 @@ const handleReset = () => {
   queryParams.positionName = ''
   queryParams.status = null
   queryParams.page = 1
-  getList()
 }
 
 const handleSelectionChange = (selection: Offer[]) => {
@@ -646,10 +843,18 @@ const handleNewVersion = async (row: Offer) => {
   dialogVisible.value = true
 }
 
-// 删除
+// 删除（业界标准：仅 status 3/6/7（审批拒绝 / 候选人拒绝 / 已撤回）可删；其他状态是法务证据，应走"撤回"流程）
+const isDeletable = (row: Offer): boolean => {
+  return [3, 6, 7].includes(row.status)
+}
+
 const handleDelete = async (row: Offer) => {
+  if (!isDeletable(row)) {
+    ElMessage.warning('该 Offer 不可删除：仅"审批拒绝/候选人拒绝/已撤回"状态可删，待审批/审批通过/已发送/已接受 是法务证据，应走"撤回"流程')
+    return
+  }
   try {
-    await ElMessageBox.confirm('确定删除该 Offer 吗？', '提示', { type: 'warning' })
+    await ElMessageBox.confirm('确定删除该 Offer 吗？删除后不可恢复。', '提示', { type: 'warning' })
     await deleteOffer(row.id)
     ElMessage.success('已删除')
     getList()
@@ -658,12 +863,38 @@ const handleDelete = async (row: Offer) => {
   }
 }
 
-// 批量删除
+// 批量删除（业界标准：仅"审批拒绝/已撤回"等终态草稿性质 Offer 可删，已发送/已接受/待审批/审批通过 不允许删 — 法务证据）
+const PROTECTED_STATUSES = [1, 2, 4, 5] // 待审批/审批通过/已发送/已接受 不允许删
+const PROTECTED_STATUS_LABEL: Record<number, string> = {
+  1: '待审批',
+  2: '审批通过',
+  4: '已发送',
+  5: '已接受'
+}
+
 const handleBatchDelete = async () => {
+  // 校验：选中的 Offer 是否含不可删除状态
+  const selected = allTableData.value.filter((r) => selectedIds.value.includes(r.id))
+  const protectedItems = selected.filter((r) => PROTECTED_STATUSES.includes(r.status))
+
+  if (protectedItems.length > 0) {
+    const lines = protectedItems
+      .map((r) => `• ${r.offerNo} ${r.candidateName}（${PROTECTED_STATUS_LABEL[r.status]}）`)
+      .join('\n')
+    await ElMessageBox.alert(
+      `以下 Offer 不可删除：\n\n${lines}\n\n业界标准：待审批/审批通过/已发送/已接受状态的 Offer 是法务证据，应通过"撤回"流程处理。仅"草稿/审批拒绝/候选人拒绝/已撤回"可删除。`,
+      '批量删除受限',
+      { type: 'warning', confirmButtonText: '我知道了' }
+    )
+    return
+  }
+
   try {
-    await ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 条 Offer 吗？`, '提示', {
-      type: 'warning'
-    })
+    await ElMessageBox.confirm(
+      `确定删除选中的 ${selectedIds.value.length} 条 Offer 吗？删除后不可恢复。`,
+      '提示',
+      { type: 'warning' }
+    )
     await batchDeleteOffers(selectedIds.value)
     ElMessage.success('已删除')
     getList()
@@ -723,9 +954,19 @@ onMounted(async () => {
     const q = route.query
     if (q.candidateName) formData.candidateName = String(q.candidateName)
     if (q.positionName) formData.positionName = String(q.positionName)
+    if (q.departmentName) formData.departmentName = String(q.departmentName)
+    if (q.workLocation) formData.workLocation = String(q.workLocation)
     if (q.resumeId) formData.resumeId = Number(q.resumeId) || 0
     const from = route.query.from
     router.replace({ query: from ? { from: String(from) } : {} })
+  }
+
+  // 员工档案 → Offer 详情：用 offerNo 自动定位
+  if (route.query.offerNo) {
+    queryParams.offerNo = String(route.query.offerNo)
+    activeTab.value = 'completed' // 来源 Offer 必然是已接受（已结束）
+    getList()
+    router.replace({ query: {} })
   }
 })
 </script>
@@ -782,6 +1023,19 @@ onMounted(async () => {
     height: 100%;
     display: flex;
     flex-direction: column;
+  }
+
+  .status-tabs {
+    flex-shrink: 0;
+    margin-bottom: 12px;
+
+    :deep(.el-tabs__header) {
+      margin: 0;
+    }
+
+    :deep(.el-tabs__nav-wrap::after) {
+      height: 1px;
+    }
   }
 
   .table-header {
@@ -858,6 +1112,39 @@ onMounted(async () => {
     word-wrap: break-word;
     max-height: 400px;
     overflow-y: auto;
+  }
+}
+
+/* Offer 流程业务规则改造 */
+.compa-ratio {
+  font-weight: 600;
+  font-family: 'SF Mono', Menlo, monospace;
+
+  &.compa-normal {
+    color: #67c23a;
+  }
+  &.compa-warning {
+    color: #e6a23c;
+  }
+  &.compa-danger {
+    color: #f56c6c;
+  }
+  &.compa-low {
+    color: #909399;
+  }
+}
+
+.status-duration {
+  font-size: 13px;
+  color: #606266;
+
+  &.duration-warning {
+    color: #e6a23c;
+    font-weight: 600;
+  }
+  &.duration-danger {
+    color: #f56c6c;
+    font-weight: 600;
   }
 }
 </style>

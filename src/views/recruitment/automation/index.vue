@@ -321,7 +321,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { Plus, InfoFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
-import ModuleTabBar from '@/views/recruitment/_shared/ModuleTabBar.vue'
+import ModuleTabBar from '@/components/business/ModuleTabBar.vue'
 import {
   automationRuleApi,
   automationLogApi,
@@ -345,9 +345,9 @@ defineOptions({ name: 'RecruitmentAutomation' })
 
 const settingsGroupTabs = [
   { label: '招聘配置中心', path: '/recruit/settings-config' },
-  { label: '自动化规则', path: '/recruit/settings-automation/x' },
-  { label: '内推规则', path: '/recruit/settings-referral-rules/x' },
-  { label: '外部集成', path: '/recruit/settings-integrations/x' }
+  { label: '自动化规则', path: '/recruit/settings-automation' },
+  { label: '内推规则', path: '/recruit/settings-referral-rules' },
+  { label: '外部集成', path: '/recruit/settings-integrations' }
 ]
 
 const activeTab = ref<'rules' | 'logs' | 'templates'>('rules')

@@ -1,8 +1,7 @@
 <template>
   <div class="org-container">
-    <el-card class="org-main-card">
-      <el-tabs v-model="activeView" class="org-tabs">
-        <el-tab-pane label="列表管理" name="list">
+    <PageTabs v-model="activeView" class="org-tabs">
+      <el-tab-pane label="列表管理" name="list">
           <div class="org-layout">
         <!-- 左侧树 -->
         <div class="org-tree-panel">
@@ -156,7 +155,7 @@
         </el-tab-pane>
 
         <!-- Tab 2：架构图视图 -->
-        <el-tab-pane label="架构图" name="chart">
+      <el-tab-pane label="架构图" name="chart">
           <div class="chart-toolbar">
             <el-button size="default" @click="handleChartExpand">展开全部</el-button>
             <el-button size="default" @click="handleChartCollapse">收起全部</el-button>
@@ -167,9 +166,8 @@
             <span class="chart-tip">提示：滚轮缩放，拖拽平移</span>
           </div>
           <div ref="chartRef" class="org-chart-container"></div>
-        </el-tab-pane>
-      </el-tabs>
-    </el-card>
+      </el-tab-pane>
+    </PageTabs>
 
     <!-- 编辑 Dialog -->
     <el-dialog v-model="editDialogVisible" :title="editForm.id ? '编辑组织' : '新增组织'" width="680px">
@@ -556,19 +554,7 @@ onBeforeUnmount(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-
-  .org-main-card {
-    flex: 1;
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 12px;
-    overflow: hidden;
-
-    :deep(.el-card__body) {
-      padding: 0;
-      height: 100%;
-    }
-  }
+  gap: 16px;
 
   .org-layout {
     display: flex;
@@ -648,9 +634,11 @@ onBeforeUnmount(() => {
   }
 }
 
+/* el-tab-pane 内容卡片样式（PageTabs 已统一外层 Tab 样式） */
 .org-tabs {
-  :deep(.el-tabs__content) {
-    padding-top: 8px;
+  :deep(.el-tab-pane) {
+    background: #fff;
+    border-radius: 12px;
   }
 }
 

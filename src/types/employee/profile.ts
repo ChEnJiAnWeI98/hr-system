@@ -130,6 +130,12 @@ export interface Employee {
   // ========== HRBP 分管（若该员工是 HRBP）==========
   /** 分管的组织 ID 列表（Q5=B 决策） */
   managedOrgIds?: number[]
+
+  // ========== 招聘溯源（业界对标 Greenhouse/Workday，hire 业务流的反向链接）==========
+  /** 来源 Offer 编号（员工档案 → 历史 Offer 的反向追溯）*/
+  sourceOfferNo?: string
+  /** 来源简历编号 */
+  sourceResumeNo?: string
 }
 
 /**

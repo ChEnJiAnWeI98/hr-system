@@ -5,12 +5,25 @@
       <div class="ai-banner-left">
         <span class="ai-banner-icon">⚠️</span>
         <div>
-          <div class="ai-banner-title">AI 洞察 · 高风险员工预警</div>
-          <div class="ai-banner-desc">盘点会议前辅助识别风险关注对象，基于多维信号识别离职、绩效、心理异常风险</div>
+          <div class="ai-banner-title">
+            AI 洞察 · 高风险员工预警
+            <el-tag
+              v-if="riskAlertRedDot"
+              size="small"
+              type="danger"
+              effect="dark"
+              class="red-dot-tag"
+            >
+              已就绪 · 盘点会议触发
+            </el-tag>
+          </div>
+          <div class="ai-banner-desc">盘点会议前辅助识别关注对象，基于 HR 系统已授权数据预判近期可能离职员工，不监控行为数据</div>
         </div>
       </div>
-      <el-button type="primary" @click="aiRiskAlertVisible = true">
-        识别高风险员工
+      <el-button type="primary" @click="handleOpenRiskAlert">
+        <el-badge :is-dot="riskAlertRedDot" class="risk-alert-badge">
+          识别高风险员工
+        </el-badge>
       </el-button>
     </el-card>
 
@@ -140,22 +153,18 @@
       </template>
     </el-dialog>
 
-    <!-- AI 高风险员工预警（诊断模式）-->
-    <AIAssistDialog
+    <!-- AI 高风险员工预警（v2 · Drawer + 结构化 + Inline 操作）-->
+    <RiskAlertDrawer
       v-model="aiRiskAlertVisible"
-      ability-code="risk_alert"
-      mode="diagnose"
-      initial-input="输入范围：当前盘点会议适用范围的员工，近 8 周数据"
-      dialog-width="720px"
-      dialog-title="高风险员工预警 · AI 分析"
-      input-label="分析范围"
+      scope-hint="当前盘点会议适用范围的员工，近 8 周数据"
+      :trigger-reason="drawerTriggerReason"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import AIAssistDialog from '@/components/business/AIAssistDialog.vue'
+import RiskAlertDrawer from '@/views/_shared/RiskAlertDrawer.vue'
 import { useRouter } from 'vue-router'
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
@@ -175,9 +184,29 @@ import type {
   TalentReviewStatus
 } from '@/types/performanceTalentReview'
 
+import type { RecomputeReason } from '@/types/performanceAI'
+
 defineOptions({ name: 'PerformanceTalentReview' })
 
 const router = useRouter()
+
+/* ============ AI 风险预警 push 例外（创建盘点会议时自动跑）============ */
+const RED_DOT_KEY = 'hr_risk_alert_red_dot'
+const aiRiskAlertVisible = ref(false)
+const riskAlertRedDot = ref(localStorage.getItem(RED_DOT_KEY) === '1')
+const drawerTriggerReason = ref<RecomputeReason | undefined>(undefined)
+
+const handleOpenRiskAlert = () => {
+  // 点 Banner = HR 看见红点 = 清掉红点
+  if (riskAlertRedDot.value) {
+    drawerTriggerReason.value = 'meeting_created'
+    riskAlertRedDot.value = false
+    localStorage.removeItem(RED_DOT_KEY)
+  } else {
+    drawerTriggerReason.value = undefined // 默认 daily_03
+  }
+  aiRiskAlertVisible.value = true
+}
 
 const queryParams = reactive<TalentReviewMeetingListParams>({
   meetingName: '',
@@ -207,7 +236,6 @@ const handleReset = () => {
 
 // 编辑
 const editDialogVisible = ref(false)
-const aiRiskAlertVisible = ref(false)
 const editFormRef = ref<FormInstance>()
 const editForm = reactive<Partial<TalentReviewMeeting>>({
   id: undefined,
@@ -266,7 +294,10 @@ const handleSubmit = async () => {
     ElMessage.success('更新成功')
   } else {
     await addTalentMeeting(editForm as any)
-    ElMessage.success('发起成功')
+    ElMessage.success('发起成功 · AI 风险预警已就绪')
+    // push 例外：创建盘点会议触发风险预警重算 → Banner 红点
+    localStorage.setItem(RED_DOT_KEY, '1')
+    riskAlertRedDot.value = true
   }
   editDialogVisible.value = false
   fetchData()
@@ -317,6 +348,13 @@ onMounted(fetchData)
     font-size: 15px;
     font-weight: 600;
     color: #303133;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .red-dot-tag {
+      animation: pulse-bg 2s ease-in-out infinite;
+    }
   }
 
   .ai-banner-desc {
@@ -324,6 +362,18 @@ onMounted(fetchData)
     color: #606266;
     margin-top: 2px;
   }
+}
+
+.risk-alert-badge {
+  :deep(.el-badge__content) {
+    top: 4px;
+    right: 4px;
+  }
+}
+
+@keyframes pulse-bg {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .talent-review-container {

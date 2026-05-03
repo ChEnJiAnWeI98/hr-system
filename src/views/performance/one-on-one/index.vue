@@ -24,7 +24,7 @@
       </el-card>
     </div>
 
-    <el-tabs v-model="activeTab" class="ooo-tabs">
+    <PageTabs v-model="activeTab" class="ooo-tabs">
       <!-- Tab 1: 1on1 列表 -->
       <el-tab-pane label="1on1 管理" name="list">
         <el-card class="data-card">
@@ -195,7 +195,7 @@
           </el-table>
         </el-card>
       </el-tab-pane>
-    </el-tabs>
+    </PageTabs>
 
     <!-- 发起 1on1 弹窗 -->
     <el-dialog v-model="createVisible" title="发起 1on1" width="500px">
@@ -222,19 +222,23 @@
           <el-date-picker v-model="createForm.plannedTime" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" style="width: 100%" />
         </el-form-item>
         <el-form-item label="准备内容">
+          <el-input
+            v-model="createForm.prep"
+            type="textarea"
+            :rows="4"
+            placeholder="本次 1on1 你想聊的话题，员工需要准备的材料等"
+          />
           <div class="prep-toolbar">
             <el-button
               link
               type="primary"
-              :loading="agendaLoading"
               :disabled="!createForm.employeeName"
-              @click="handleGenerateAgenda"
+              @click="aiProfileVisible = true"
             >
-              ✨ AI 生成提纲
+              <el-icon><ArtAiIcon /></el-icon>
+              查看员工资料卡（AI 辅助参考）
             </el-button>
-            <span class="prep-toolbar-hint">基于员工近期目标 / 360 反馈 / 上次面谈，一键填入</span>
           </div>
-          <el-input v-model="createForm.prep" type="textarea" :rows="4" placeholder="要讨论的话题、员工需要准备的材料等" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -388,13 +392,22 @@
         <el-button type="primary" @click="submitRecognition">授予</el-button>
       </template>
     </el-dialog>
+
+    <!-- AI 员工资料卡（Drawer 抽屉：与发起 1on1 弹窗并存，避免双层模态）-->
+    <EmployeeProfileDrawer
+      v-model="aiProfileVisible"
+      :context-input="buildEmployeeProfileInput()"
+      :target-employee="createForm.employeeName || ''"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import EmployeeProfileDrawer from '@/views/performance/_shared/EmployeeProfileDrawer.vue'
 import {
   getOneOnOneList,
   addOneOnOne,
@@ -432,21 +445,7 @@ const loadOoo = async () => {
 }
 
 const createVisible = ref(false)
-// AI 面谈提纲生成（直接调用，填入 textarea，不弹对话框）
-const agendaLoading = ref(false)
-const handleGenerateAgenda = async () => {
-  if (!createForm.employeeName) return
-  agendaLoading.value = true
-  try {
-    const { invokeAIAbility } = await import('@/api/performanceAI')
-    const input = `员工：${createForm.employeeName}（部门：${createForm.departmentName || '-'}）\n本次 1on1 Leader：${createForm.leaderName || '-'}\n发起方：${createForm.initiator || '-'}\n计划时间：${createForm.plannedTime || '-'}\n备注：请基于员工近期目标进度、360 反馈、上次面谈纪要，生成按优先级排序的讨论要点。`
-    const res: any = await invokeAIAbility('meeting_agenda', input, 'HR-Lisa', createForm.employeeName)
-    createForm.prep = res.data.output
-    ElMessage.success('已生成提纲并填入「准备内容」')
-  } finally {
-    agendaLoading.value = false
-  }
-}
+
 const createForm = reactive({
   employeeId: 0,
   employeeName: '',
@@ -457,6 +456,20 @@ const createForm = reactive({
   plannedTime: '',
   prep: ''
 })
+
+// AI 员工资料卡（仅参考，adoptable=false 不填入"准备内容"——Leader 自己写）
+const aiProfileVisible = ref(false)
+const buildEmployeeProfileInput = (): string => {
+  if (!createForm.employeeName) return ''
+  // Mock 阶段：拼接员工身份信息 + 数据获取请求；真接入 LLM 时此处由 RAG 层注入真实数据
+  return `员工：${createForm.employeeName}（部门：${createForm.departmentName || '-'}）
+1on1 Leader：${createForm.leaderName || '-'}
+计划时间：${createForm.plannedTime || '-'}
+
+请基于员工本季度 OKR 进度、360 评分趋势（脱敏）、出勤异常、代码活跃度、上次 1on1 议题，
+生成"数据快照 + AI 智能洞察 + 重点关注"三段式资料卡。
+仅做现状洞察，不替 Leader 设计对话或写提问。`
+}
 
 const openCreateDialog = () => {
   Object.assign(createForm, {
@@ -690,10 +703,37 @@ const submitRecognition = async () => {
   loadBadges()
 }
 
+/* ============ 来自 RiskAlertDrawer 的预填跳转 ============ */
+const route = useRoute()
+const router = useRouter()
+
+const handleQueryPrefill = () => {
+  const empId = route.query.createForEmployeeId
+  const empName = route.query.createForEmployeeName
+  const dept = route.query.createForDepartment
+  if (empName && typeof empName === 'string') {
+    Object.assign(createForm, {
+      employeeId: empId ? Number(empId) : 0,
+      employeeName: empName,
+      departmentName: typeof dept === 'string' ? dept : '',
+      leaderId: 0,
+      leaderName: '',
+      initiator: 'leader',
+      plannedTime: '',
+      prep: '风险预警触发的关怀 1on1 —— 请基于 AI 风险信号准备议题，HR 自行判断如何沟通。'
+    })
+    createVisible.value = true
+    activeTab.value = 'list'
+    // 清掉 query 防止刷新重复触发
+    router.replace({ path: route.path, query: {} })
+  }
+}
+
 onMounted(() => {
   loadOoo()
   loadFeedbacks()
   loadBadges()
+  handleQueryPrefill()
 })
 </script>
 
@@ -701,13 +741,8 @@ onMounted(() => {
 .prep-toolbar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 6px;
-
-  .prep-toolbar-hint {
-    font-size: 12px;
-    color: #909399;
-  }
+  margin-top: 6px;
+  line-height: 1;
 }
 
 .ooo-container {

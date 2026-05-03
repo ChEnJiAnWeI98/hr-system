@@ -11,11 +11,11 @@ import type { AppRouteRecord } from '@/types/router'
  *   - AI 辅助中心 → 09 数据洞察（insight/ai-assistant）
  *   - 绩效分析看板 → 09 数据洞察（insight/performance）
  *
- * 保留 Tab 融合（复用 _shared/ModuleTabBar）：
+ * ModuleTabBar Tab 融合（复用 @/components/business/ModuleTabBar）：
  *   - 目标管理 ⇌ 目标对齐
  *   - 绩效评估 ⇌ 360 度评估
- *   - 持续反馈（内部 Tab: 1on1 + 徽章）
- *   - 绩效配置（内部 Tab: 模板 + 应用规则 + 任务中心）
+ *   - 徽章认可（4 子页：类型/配额/记录/规则）
+ *   - 结果应用（2 子页：规则配置/执行记录）
  */
 export const perfRoutes: AppRouteRecord = {
   path: '/perf',
@@ -40,7 +40,7 @@ export const perfRoutes: AppRouteRecord = {
       meta: { title: 'menus.perf.goal', keepAlive: true, menuCode: 'perf:goal' }
     },
     {
-      path: 'goal-alignment/x',
+      path: 'goal-alignment',
       name: 'PerfGoalAlignment',
       component: () => import('@/views/performance/goal-alignment/index.vue'),
       meta: {
@@ -57,7 +57,7 @@ export const perfRoutes: AppRouteRecord = {
       meta: { title: 'menus.perf.evaluation', keepAlive: true, menuCode: 'perf:evaluation' }
     },
     {
-      path: 'review-360/x',
+      path: 'review-360',
       name: 'PerfReview360',
       component: () => import('@/views/performance/review-360/index.vue'),
       meta: {
@@ -85,18 +85,54 @@ export const perfRoutes: AppRouteRecord = {
       component: () => import('@/views/performance/archive/index.vue'),
       meta: { title: 'menus.perf.archive', keepAlive: true, menuCode: 'perf:archive' }
     },
-    // 持续反馈
     {
-      path: 'feedback-one-on-one',
-      name: 'PerfFeedbackOneOnOne',
+      path: 'one-on-one',
+      name: 'PerfOneOnOne',
       component: () => import('@/views/performance/one-on-one/index.vue'),
       meta: { title: 'menus.perf.oneOnOne', keepAlive: true, menuCode: 'perf:feedback' }
     },
+    // 徽章管理（拆为 4 个独立路由 + ModuleTabBar）
     {
-      path: 'feedback-badges',
-      name: 'PerfFeedbackBadges',
-      component: () => import('@/views/performance/badges/index.vue'),
+      path: 'badges-type',
+      name: 'PerfBadgesType',
+      component: () => import('@/views/performance/badges-type/index.vue'),
       meta: { title: 'menus.perf.badges', keepAlive: true, menuCode: 'perf:feedback' }
+    },
+    {
+      path: 'badges-quota',
+      name: 'PerfBadgesQuota',
+      component: () => import('@/views/performance/badges-quota/index.vue'),
+      meta: {
+        title: 'menus.perf.badgesQuota',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/perf/badges-type',
+        menuCode: 'perf:feedback'
+      }
+    },
+    {
+      path: 'badges-award',
+      name: 'PerfBadgesAward',
+      component: () => import('@/views/performance/badges-award/index.vue'),
+      meta: {
+        title: 'menus.perf.badgesAward',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/perf/badges-type',
+        menuCode: 'perf:feedback'
+      }
+    },
+    {
+      path: 'badges-rule',
+      name: 'PerfBadgesRule',
+      component: () => import('@/views/performance/badges-rule/index.vue'),
+      meta: {
+        title: 'menus.perf.badgesRule',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/perf/badges-type',
+        menuCode: 'perf:feedback'
+      }
     },
     // PIP / 申诉
     {
@@ -111,22 +147,34 @@ export const perfRoutes: AppRouteRecord = {
       component: () => import('@/views/performance/appeal/index.vue'),
       meta: { title: 'menus.perf.appeal', keepAlive: true, menuCode: 'perf:appeal' }
     },
-    // 绩效配置（模板 / 应用规则 / 任务中心）
     {
-      path: 'settings-template',
-      name: 'PerfSettingsTemplate',
+      path: 'template',
+      name: 'PerfTemplate',
       component: () => import('@/views/performance/template/index.vue'),
       meta: { title: 'menus.perf.template', keepAlive: true, menuCode: 'perf:settings' }
     },
+    // 应用规则（拆为 2 个独立路由 + ModuleTabBar；联动说明改为按钮+Dialog）
     {
-      path: 'settings-apply-rules',
-      name: 'PerfSettingsApplyRules',
-      component: () => import('@/views/performance/apply-rules/index.vue'),
+      path: 'apply-rules-config',
+      name: 'PerfApplyRulesConfig',
+      component: () => import('@/views/performance/apply-rules-config/index.vue'),
       meta: { title: 'menus.perf.applyRules', keepAlive: true, menuCode: 'perf:settings' }
     },
     {
-      path: 'settings-tasks',
-      name: 'PerfSettingsTasks',
+      path: 'apply-rules-record',
+      name: 'PerfApplyRulesRecord',
+      component: () => import('@/views/performance/apply-rules-record/index.vue'),
+      meta: {
+        title: 'menus.perf.applyRulesRecord',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/perf/apply-rules-config',
+        menuCode: 'perf:settings'
+      }
+    },
+    {
+      path: 'tasks',
+      name: 'PerfTasks',
       component: () => import('@/views/performance/tasks/index.vue'),
       meta: { title: 'menus.perf.tasks', keepAlive: true, menuCode: 'perf:settings' }
     }

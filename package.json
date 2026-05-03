@@ -1,12 +1,11 @@
 {
-  "name": "axuremart-ai-web",
-  "version": "0.0.0",
+  "name": "hr-system-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "企业级 HR 人力资源管理系统，覆盖组织/招聘/绩效/薪酬等模块",
+  "license": "MIT",
+  "author": "ChEnJiAnWeI98",
   "type": "module",
-  "engines": {
-    "node": ">=20.19.0",
-    "npm": ">=8.0.0",
-    "pnpm": ">=8.8.0"
-  },
   "scripts": {
     "dev": "vite --open",
     "build": "vue-tsc --noEmit && vite build",
@@ -25,33 +24,6 @@
     "commitizen": {
       "path": "node_modules/cz-git"
     }
-  },
-  "lint-staged": {
-    "*.{js,ts,mjs,mts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{cjs,json,jsonc}": [
-      "prettier --write"
-    ],
-    "*.vue": [
-      "eslint --fix",
-      "stylelint --fix --allow-empty-input",
-      "prettier --write"
-    ],
-    "*.{html,htm}": [
-      "prettier --write"
-    ],
-    "*.{scss,css,less}": [
-      "stylelint --fix --allow-empty-input",
-      "prettier --write"
-    ],
-    "*.{md,mdx}": [
-      "prettier --write"
-    ],
-    "*.{yaml,yml}": [
-      "prettier --write"
-    ]
   },
   "dependencies": {
     "@antv/g-canvas": "^2.0.50",
@@ -119,5 +91,38 @@
     "vue-demi": "^0.14.9",
     "vue-img-cutter": "^3.0.5",
     "vue-tsc": "~2.1.6"
+  },
+  "engines": {
+    "node": ">=20.19.0",
+    "npm": ">=8.0.0",
+    "pnpm": ">=8.8.0"
+  },
+  "packageManager": "pnpm@10.28.0",
+  "lint-staged": {
+    "*.{js,ts,mjs,mts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{cjs,json,jsonc}": [
+      "prettier --write"
+    ],
+    "*.vue": [
+      "eslint --fix",
+      "stylelint --fix --allow-empty-input",
+      "prettier --write"
+    ],
+    "*.{html,htm}": [
+      "prettier --write"
+    ],
+    "*.{scss,css,less}": [
+      "stylelint --fix --allow-empty-input",
+      "prettier --write"
+    ],
+    "*.{md,mdx}": [
+      "prettier --write"
+    ],
+    "*.{yaml,yml}": [
+      "prettier --write"
+    ]
   }
 }

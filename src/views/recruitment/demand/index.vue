@@ -395,13 +395,13 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/modules/user'
-import ModuleTabBar from '@/views/recruitment/_shared/ModuleTabBar.vue'
+import ModuleTabBar from '@/components/business/ModuleTabBar.vue'
 import type { RecruitmentDemand, RecruitmentDemandListParams, ApprovalNode } from '@/types/recruitmentDemand'
 
 const demandGroupTabs = [
   { label: '我的招聘需求', path: '/recruit/demand' },
-  { label: 'HR 招聘需求池', path: '/recruit/demand-pool/x' },
-  { label: '完成率监控', path: '/recruit/demand-completion/x' }
+  { label: 'HR 招聘需求池', path: '/recruit/demand-pool' },
+  { label: '完成率监控', path: '/recruit/demand-completion' }
 ]
 import {
   getRecruitmentDemandList,

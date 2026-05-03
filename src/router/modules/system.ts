@@ -212,13 +212,47 @@ export const systemRoutes: AppRouteRecord = {
         menuCode: 'system:notification'
       }
     },
+    // 系统参数（拆为 4 个独立路由 + ModuleTabBar）
     {
-      path: 'param',
-      name: 'SystemParam',
-      component: () => import('@/views/system/param/index.vue'),
+      path: 'param-basic',
+      name: 'SystemParamBasic',
+      component: () => import('@/views/system/param-basic/index.vue'),
       meta: {
         title: 'menus.system.param',
         keepAlive: true
+      }
+    },
+    {
+      path: 'param-security',
+      name: 'SystemParamSecurity',
+      component: () => import('@/views/system/param-security/index.vue'),
+      meta: {
+        title: 'menus.system.paramSecurity',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/system/param-basic'
+      }
+    },
+    {
+      path: 'param-business',
+      name: 'SystemParamBusiness',
+      component: () => import('@/views/system/param-business/index.vue'),
+      meta: {
+        title: 'menus.system.paramBusiness',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/system/param-basic'
+      }
+    },
+    {
+      path: 'param-notification',
+      name: 'SystemParamNotification',
+      component: () => import('@/views/system/param-notification/index.vue'),
+      meta: {
+        title: 'menus.system.paramNotification',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/system/param-basic'
       }
     }
   ]

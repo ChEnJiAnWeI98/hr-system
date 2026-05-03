@@ -106,11 +106,6 @@ export interface ListParams {
 - 遵循 RESTful 风格：get/add/update/delete + 资源名称
 - 批量操作：batch + 操作 + 资源名称（如 `batchDeleteItems`）
 
-### 清理脚本规范
-
-- **清理脚本已固定**：`scripts/clean-demo-modules.js` 已配置好保留的模块列表
-- **实现新功能时不需要更新清理脚本**
-
 ## 页面布局核心原则
 
 ### 布局原则

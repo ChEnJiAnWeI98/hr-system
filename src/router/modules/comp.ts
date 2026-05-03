@@ -36,17 +36,55 @@ export const compRoutes: AppRouteRecord = {
       component: () => import('@/views/comp/payslip/index.vue'),
       meta: { title: 'menus.comp.payslip', keepAlive: true, menuCode: 'comp:payslip' }
     },
+    // 个税管理（拆为 3 个独立路由 + ModuleTabBar）
     {
-      path: 'tax',
-      name: 'CompTax',
-      component: () => import('@/views/comp/tax/index.vue'),
+      path: 'tax-bracket',
+      name: 'CompTaxBracket',
+      component: () => import('@/views/comp/tax-bracket/index.vue'),
       meta: { title: 'menus.comp.tax', keepAlive: true, menuCode: 'comp:tax' }
     },
     {
-      path: 'welfare',
-      name: 'CompWelfare',
-      component: () => import('@/views/comp/welfare/index.vue'),
+      path: 'tax-deduction',
+      name: 'CompTaxDeduction',
+      component: () => import('@/views/comp/tax-deduction/index.vue'),
+      meta: {
+        title: 'menus.comp.taxDeduction',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/comp/tax-bracket',
+        menuCode: 'comp:tax'
+      }
+    },
+    {
+      path: 'tax-settlement',
+      name: 'CompTaxSettlement',
+      component: () => import('@/views/comp/tax-settlement/index.vue'),
+      meta: {
+        title: 'menus.comp.taxSettlement',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/comp/tax-bracket',
+        menuCode: 'comp:tax'
+      }
+    },
+    // 福利管理（拆为 2 个独立路由 + ModuleTabBar）
+    {
+      path: 'welfare-program',
+      name: 'CompWelfareProgram',
+      component: () => import('@/views/comp/welfare-program/index.vue'),
       meta: { title: 'menus.comp.welfare', keepAlive: true, menuCode: 'comp:welfare' }
+    },
+    {
+      path: 'welfare-grant',
+      name: 'CompWelfareGrant',
+      component: () => import('@/views/comp/welfare-grant/index.vue'),
+      meta: {
+        title: 'menus.comp.welfareGrant',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/comp/welfare-program',
+        menuCode: 'comp:welfare'
+      }
     },
     {
       path: 'report',

@@ -185,7 +185,7 @@
         <div class="category-header">
           <div class="category-title-wrap">
             <span class="category-icon" style="background: #6f5ef9">
-              <el-icon :size="20" color="#fff"><MagicStick /></el-icon>
+              <el-icon :size="20" color="#fff"><ArtAiIcon /></el-icon>
             </span>
             <div>
               <div class="category-title">AI 大模型服务</div>
@@ -452,21 +452,20 @@ import {
   EditPen,
   InfoFilled,
   Setting,
-  MagicStick,
   ChatDotRound,
   Share,
   Medal
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import ModuleTabBar from '@/views/recruitment/_shared/ModuleTabBar.vue'
+import ModuleTabBar from '@/components/business/ModuleTabBar.vue'
 
 defineOptions({ name: 'RecruitmentIntegrations' })
 
 const settingsGroupTabs = [
   { label: '招聘配置中心', path: '/recruit/settings-config' },
-  { label: '自动化规则', path: '/recruit/settings-automation/x' },
-  { label: '内推规则', path: '/recruit/settings-referral-rules/x' },
-  { label: '外部集成', path: '/recruit/settings-integrations/x' }
+  { label: '自动化规则', path: '/recruit/settings-automation' },
+  { label: '内推规则', path: '/recruit/settings-referral-rules' },
+  { label: '外部集成', path: '/recruit/settings-integrations' }
 ]
 
 /**
@@ -829,6 +828,7 @@ const handleSaveConfig = () => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  gap: 16px;
 }
 
 .content-scrollbar {

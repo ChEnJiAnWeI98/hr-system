@@ -432,7 +432,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Plus, Download, Document, InfoFilled } from '@element-plus/icons-vue'
 import CandidatePicker from '@/views/recruitment/_shared/CandidatePicker.vue'
@@ -478,7 +478,35 @@ const onCandidatePick = (r: Resume) => {
   if (r.position) orderForm.position = r.position
 }
 
-const activeTab = ref<'orders' | 'packages' | 'cost'>('orders')
+/* Tab 与路由联动（业界规范：独立业务领域用独立 URL · 浏览器前进/后退/刷新都保持当前 Tab） */
+const TAB_TO_PATH: Record<string, string> = {
+  orders: '/recruit/ops-background-check',
+  packages: '/recruit/background-check-package',
+  cost: '/recruit/background-check-cost'
+}
+const PATH_TO_TAB: Record<string, 'orders' | 'packages' | 'cost'> = {
+  '/recruit/ops-background-check': 'orders',
+  '/recruit/background-check-package': 'packages',
+  '/recruit/background-check-cost': 'cost'
+}
+
+const activeTab = ref<'orders' | 'packages' | 'cost'>(
+  PATH_TO_TAB[route.path] || 'orders'
+)
+
+watch(
+  () => route.path,
+  (newPath) => {
+    const tab = PATH_TO_TAB[newPath]
+    if (!tab) return
+    // 用户点 Tab 时，el-tabs v-model 已经更新 activeTab，watch 仍触发（route 变了）
+    // 此时 tab === activeTab，不需要再赋值，但仍需 loadXxx
+    if (tab !== activeTab.value) {
+      activeTab.value = tab
+    }
+    handleTabChange()
+  }
+)
 
 /* ========== 订单列表 ========== */
 const orderList = ref<BackgroundCheck[]>([])
@@ -605,8 +633,20 @@ const renderCostCharts = () => {
   }
 }
 
-/* ========== Tab 切换 ========== */
-const handleTabChange = () => {
+/* ========== Tab 切换 · 同步路由 ==========
+ * Bug 修复：el-tabs 的 v-model 在触发 @tab-change 之前已经更新了 activeTab，
+ * 所以不能用 `tabName !== activeTab.value` 判断（永远相等）。
+ * 改为基于 route.path 判断 —— 只要目标路径与当前路径不同就跳转。
+ */
+const handleTabChange = (tabName?: string | number) => {
+  if (typeof tabName === 'string') {
+    const targetPath = TAB_TO_PATH[tabName]
+    if (targetPath && targetPath !== route.path) {
+      router.push(targetPath)
+      return
+    }
+  }
+  // 加载当前 Tab 的数据
   if (activeTab.value === 'orders') loadOrders()
   else if (activeTab.value === 'packages') loadPackages()
   else if (activeTab.value === 'cost') loadCostStats()

@@ -119,9 +119,10 @@
 
         <div class="ai-agenda-row">
           <el-button type="primary" plain size="small" @click="aiAgendaVisible = true">
-            ✨ AI 生成面谈提纲（参考）
+            <el-icon><ArtAiIcon /></el-icon>
+            查看员工资料卡（AI 辅助）
           </el-button>
-          <span class="ai-agenda-hint">基于员工目标进度/360 反馈 生成讨论要点，辅助面谈人备课</span>
+          <span class="ai-agenda-hint">AI 拉员工 OKR / 360 / 出勤数据生成洞察，仅供面谈人参考；具体怎么聊由面谈人决定</span>
         </div>
 
         <el-form label-position="top" style="margin-top: 16px">
@@ -157,17 +158,11 @@
       </template>
     </el-dialog>
 
-    <!-- AI 面谈提纲（generate 模式，参考用，支持复制到剪贴板）-->
-    <AIAssistDialog
+    <!-- AI 员工资料卡（Drawer 抽屉：与填写纪要弹窗并存，避免双层模态；不污染纪要数据）-->
+    <EmployeeProfileDrawer
       v-model="aiAgendaVisible"
-      ability-code="meeting_agenda"
-      mode="generate"
-      :adoptable="false"
-      :initial-input="buildMeetingAgendaInput()"
+      :context-input="buildMeetingAgendaInput()"
       :target-employee="notesTarget?.employeeName || ''"
-      dialog-width="680px"
-      dialog-title="面谈提纲 · AI 生成（参考）"
-      input-label="基础信息"
     />
 
     <!-- 员工异议弹窗 -->
@@ -245,7 +240,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import AIAssistDialog from '@/components/business/AIAssistDialog.vue'
+import EmployeeProfileDrawer from '@/views/performance/_shared/EmployeeProfileDrawer.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getPerformanceMeetingList,
@@ -313,12 +308,20 @@ const submitSchedule = async () => {
 
 /* ========== 填写纪要 / 协商处理 ========== */
 const notesVisible = ref(false)
-// AI 面谈提纲生成
+// AI 员工资料卡（仅参考，adoptable=false 不填入纪要）
 const aiAgendaVisible = ref(false)
 const buildMeetingAgendaInput = () => {
   if (!notesTarget.value) return ''
   const t = notesTarget.value
-  return `员工：${t.employeeName}\n面谈人：${t.interviewerName}\n周期：${t.cycleName}\n预约时间：${t.scheduledTime || '-'}\n备注：请基于员工在本周期的目标进度、360 反馈、上次面谈纪要，生成按优先级排序的讨论要点。`
+  // Mock 阶段：拼接员工身份信息 + 数据获取请求；真接入 LLM 时此处由 RAG 层注入真实数据
+  return `员工：${t.employeeName}
+面谈人：${t.interviewerName}
+周期：${t.cycleName}
+预约时间：${t.scheduledTime || '-'}
+
+请基于员工本周期 OKR 进度、360 评分趋势（脱敏）、出勤异常、代码活跃度、上次面谈议题，
+生成"数据快照 + AI 智能洞察 + 重点关注"三段式资料卡。
+仅做现状洞察，不替面谈人设计对话或写提问。`
 }
 const notesTarget = ref<PerformanceMeeting | null>(null)
 const isResolving = ref(false)

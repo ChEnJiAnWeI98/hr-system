@@ -4,9 +4,7 @@
       <!-- 左侧品牌区 -->
       <div class="brand-panel">
         <div class="brand-logo">
-          <el-icon :size="48" color="#ffffff">
-            <Grid />
-          </el-icon>
+          <img src="@imgs/common/logo-web.png" alt="logo" class="brand-logo-img" />
         </div>
         <h2 class="brand-name">{{ systemName }}</h2>
         <p class="brand-desc">企业人力资源智能管理平台</p>
@@ -76,7 +74,7 @@
   import { HttpError } from '@/utils/http/error'
   import { fetchLogin } from '@/api/auth'
   import { ElNotification, type FormInstance, type FormRules } from 'element-plus'
-  import { User, Lock, Grid } from '@element-plus/icons-vue'
+  import { User, Lock } from '@element-plus/icons-vue'
 
   defineOptions({ name: 'Login' })
 

@@ -2,7 +2,7 @@
   <div class="page-container">
     <!-- 标签页 -->
     <el-card class="tabs-card">
-      <el-tabs v-model="activeTab" @tab-change="handleTabChange as any">
+      <PageTabs v-model="activeTab" @tab-change="handleTabChange as any">
         <!-- 标签页1：试用期员工 -->
         <el-tab-pane label="试用期员工" name="probation">
           <!-- 筛选卡片 -->
@@ -353,7 +353,7 @@
             />
           </el-card>
         </el-tab-pane>
-      </el-tabs>
+      </PageTabs>
     </el-card>
   </div>
 </template>

@@ -63,7 +63,7 @@
     </div>
 
     <el-scrollbar class="content-scrollbar">
-      <el-tabs v-model="activeTab" class="analytics-tabs" @tab-change="handleTabChange">
+      <PageTabs v-model="activeTab" class="analytics-tabs" @tab-change="handleTabChange">
         <!-- Tab: 招聘漏斗 -->
         <el-tab-pane label="招聘漏斗" name="funnel">
           <el-card class="chart-card">
@@ -164,7 +164,7 @@
           </el-card>
         </el-tab-pane>
 
-      </el-tabs>
+      </PageTabs>
     </el-scrollbar>
   </div>
 </template>

@@ -16,18 +16,40 @@ export type GoalApprovalStatus = 0 | 1 | 2 | 3
 export type GoalStatus = 0 | 1 | 2 | 3
 
 /**
+ * KR 度量方式（v3.1 简化为 3 类，对齐钉钉 / 北森 国内主流）
+ *
+ * - numeric   数值进度：可量化数字，起始/目标/当前 三件套，**自动判断方向**算进度
+ *             （v3 的 number / percent / currency 三类合并——区别仅是单位写法不同）
+ * - milestone 里程碑：阶段性事件，进度手动维护
+ * - achieve   达成型：二元 KR（达成 / 未达成），UI 用 switch 开关
+ */
+export type KRType = 'numeric' | 'milestone' | 'achieve'
+
+/**
  * OKR 关键成果（Key Result）
+ *
+ * 字段设计参考 Quantive Results / Lattice：
+ * - 数值类（number/percent/currency）：startValue → targetValue → currentValue 三件套，进度自动计算
+ * - 里程碑（milestone）：仅描述目标，进度手动维护
+ * - 是/否（boolean）：达成则 100%，否则 0%
+ *
+ * 老数据（V1.x）只有 description/targetValue/currentValue/weight/progress，新字段全部可选，
+ * 缺省 type 视为 'milestone'（最宽松、不破坏老数据展示）
  */
 export interface KeyResult {
-  /** KR 描述 */
+  /** 关键结果（多行文本，对齐飞书/钉钉/北森的"关键结果"字段名）*/
   description: string
-  /** 目标值 */
+  /** 度量方式（默认 milestone，老数据兼容）*/
+  type?: KRType
+  /** 起始值（仅 numeric 类型有效；老数据为空时降级为 0）*/
+  startValue?: string
+  /** 目标值（numeric 填数字，milestone 填阶段目标描述，achieve 不用）*/
   targetValue: string
-  /** 当前值 */
+  /** 当前值（numeric 填数字，milestone 填当前状态，achieve 填'已达成'/'未达成'）*/
   currentValue: string
   /** 权重（同一 O 下所有 KR 权重和 = 100） */
   weight: number
-  /** 完成率（0-100） */
+  /** 完成率（0-100，numeric / achieve 自动计算，milestone 手动维护） */
   progress: number
   /** 备注 */
   remark?: string
@@ -106,10 +128,116 @@ export interface PerformanceGoal {
   /** 最近进度更新人 */
   lastUpdatedBy?: string
 
+  /**
+   * 已完成的修订次数（同一周期最多 1 次，业界对齐 飞书 OKR / 钉钉 OKR / Lattice）
+   * - undefined / 0：未修订过
+   * - 1：已用完本周期修订机会，不能再次申请
+   * - 业务规则：审批通过即 +1（驳回不计数）
+   */
+  revisionCount?: number
+  /**
+   * 当前进行中的修订申请（pending / 一旦审批结束置 undefined）
+   * 用于：① 列表展示"修订中"标签 ② 阻止重复发起
+   */
+  pendingRevision?: GoalRevision
+  /** 历史修订记录（按时间倒序） */
+  revisions?: GoalRevision[]
+
   /** 创建时间 */
   createTime: string
   /** 更新时间 */
   updateTime: string
+}
+
+/* ========== 目标修订（业界共识：已批准后 O/KR 描述锁，要改走审批） ========== */
+
+/** 修订申请状态 */
+export type RevisionStatus = 'pending' | 'approved' | 'rejected'
+
+/**
+ * 修订原因（下拉枚举 · 业界飞书 OKR 同款）
+ *
+ * - market_change      市场变化（外部因素，最常见）
+ * - strategy_adjust    战略调整（公司层面方向变化）
+ * - resource_shortage  资源不足（人力/预算/技术不到位）
+ * - other              其他（必须填"原因说明"）
+ */
+export type RevisionReasonCode =
+  | 'market_change'
+  | 'strategy_adjust'
+  | 'resource_shortage'
+  | 'other'
+
+/**
+ * 修订前后字段快照
+ *
+ * 仅记录"会被锁定"的核心字段：goalTitle / goalDescription / keyResults / weight。
+ * 进度字段（progress / currentValue）不在锁定范围（员工每周 Check-in 自然会改）。
+ */
+export interface RevisionSnapshot {
+  goalTitle: string
+  goalDescription: string
+  weight: number
+  keyResults?: KeyResult[]
+}
+
+/**
+ * 单次目标修订记录
+ *
+ * 状态机：pending → approved（审批通过 · 修改生效 · revisionCount + 1）
+ *         pending → rejected（驳回 · 保持原状 · revisionCount 不变）
+ */
+export interface GoalRevision {
+  id: number
+  /** 关联 OKR ID */
+  goalId: number
+  /** 当前申请状态 */
+  status: RevisionStatus
+
+  /** 修订前快照（提交时冻结）*/
+  before: RevisionSnapshot
+  /** 修订后内容（申请人填写）*/
+  after: RevisionSnapshot
+
+  /** 修订原因（枚举）*/
+  reasonCode: RevisionReasonCode
+  /** 修订原因说明（自由文本，reasonCode = other 时必填）*/
+  reasonDetail?: string
+
+  /** 申请人（员工本人）*/
+  applicantId: number
+  applicantName: string
+  /** 申请时间 */
+  applyTime: string
+
+  /** 审批人（与初次 OKR 审批同一上级，从 PerformanceGoal.approverName 继承）*/
+  approverId?: number
+  approverName?: string
+  /** 审批时间（approved / rejected 后写入）*/
+  approveTime?: string
+  /** 审批意见（驳回时通常必填）*/
+  approveComment?: string
+}
+
+/* 修订字典 */
+
+export const REVISION_STATUS_LABEL: Record<RevisionStatus, string> = {
+  pending: '修订中',
+  approved: '已生效',
+  rejected: '已驳回'
+}
+
+export const REVISION_STATUS_TYPE: Record<RevisionStatus, ElTagType> = {
+  pending: 'warning',
+  approved: 'success',
+  rejected: 'danger'
+}
+
+export const REVISION_REASON_LABEL: Record<RevisionReasonCode, string> = {
+  market_change: '市场变化',
+  strategy_adjust: '战略调整',
+  resource_shortage: '资源不足',
+  other: '其他'
 }
 
 /**
@@ -216,3 +344,33 @@ export function matchGoalMode(jobFamily?: string): GoalMode {
   if (['技术研发', '产品设计'].includes(jobFamily)) return 1
   return 2
 }
+
+/* ========== KR 度量方式字典（v3.1：3 类，含 hint 文案） ========== */
+
+export const KR_TYPE_MAP: Record<KRType, { label: string; icon: string; hint: string }> = {
+  numeric: { label: '数值进度', icon: '📊', hint: '如 销售额 / 覆盖率 / 客户数' },
+  milestone: { label: '里程碑', icon: '🚩', hint: '如 项目交付 / 活动上线 / 阶段任务' },
+  achieve: { label: '达成型', icon: '✓', hint: '如 通过认证 / 完成入职 / 合规检查' }
+}
+
+/**
+ * 根据 KR 字段计算完成率（v4 简化：进度全靠手动滑，达成型靠 switch）
+ *
+ * - numeric  : 直接读 progress 字段（员工手动滑）
+ * - milestone: 直接读 progress 字段（员工手动滑）
+ * - achieve  : currentValue === '已达成' 则 100%，否则 0%
+ *
+ * v4 删除了"起始/目标/当前自动算进度"的逻辑——员工写完 KR 后自己更新进度，
+ * 系统不再做"从字符串里抽数字"这种容易出错的事。
+ */
+export function calcKRProgress(kr: KeyResult): number {
+  const type: KRType = kr.type || 'milestone'
+
+  if (type === 'achieve') {
+    return kr.currentValue === '已达成' ? 100 : 0
+  }
+
+  // numeric / milestone 都直接读 progress（手动维护）
+  return Math.max(0, Math.min(100, Number(kr.progress) || 0))
+}
+

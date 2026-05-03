@@ -55,7 +55,7 @@ const initialData: PerformanceTask[] = [
     assigneeId: 220, assigneeName: '林数据', assigneeRole: 'employee',
     relatedObject: { type: '360', id: 5 },
     priority: 'normal', dueTime: '2026-04-25 18:00:00',
-    redirectUrl: '/perf/review-360/x',
+    redirectUrl: '/perf/review-360',
     status: 'completed', completedAt: '2026-03-24 14:00:00',
     createTime: '2026-03-20 10:00:00', updateTime: '2026-03-24 14:00:00'
   },
@@ -88,7 +88,7 @@ const initialData: PerformanceTask[] = [
     assigneeId: 101, assigneeName: '李技术总监', assigneeRole: 'leader',
     relatedObject: { type: '360', id: 2 },
     priority: 'important', dueTime: '2026-04-19 18:00:00',
-    redirectUrl: '/perf/review-360/x',
+    redirectUrl: '/perf/review-360',
     status: 'pending',
     createTime: '2026-04-15 11:00:00', updateTime: '2026-04-15 11:00:00'
   },
@@ -98,7 +98,7 @@ const initialData: PerformanceTask[] = [
     assigneeId: 101, assigneeName: '李技术总监', assigneeRole: 'leader',
     relatedObject: { type: 'one_on_one', id: 2 },
     priority: 'normal', dueTime: '2026-04-24 15:00:00',
-    redirectUrl: '/perf/feedback-one-on-one',
+    redirectUrl: '/perf/one-on-one',
     status: 'pending',
     createTime: '2026-04-18 10:00:00', updateTime: '2026-04-18 10:00:00'
   },

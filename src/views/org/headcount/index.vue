@@ -54,7 +54,7 @@
     </el-alert>
 
     <!-- 标签切换：总览 / 调整记录 -->
-    <el-tabs v-model="activeTab" class="hc-tabs">
+    <PageTabs v-model="activeTab" class="hc-tabs">
       <el-tab-pane label="编制总览" name="plans">
         <el-card class="data-card">
           <div class="table-header">
@@ -205,7 +205,7 @@
           </el-table>
         </el-card>
       </el-tab-pane>
-    </el-tabs>
+    </PageTabs>
 
     <!-- 编制调整 Dialog -->
     <el-dialog v-model="adjustDialogVisible" title="编制调整申请" width="560px">

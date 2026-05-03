@@ -26,7 +26,7 @@
     </el-card>
 
     <el-scrollbar class="content-scroll">
-      <el-tabs v-model="activeTab" class="analytics-tabs">
+      <PageTabs v-model="activeTab" class="analytics-tabs">
         <!-- Tab 1: 分布看板 -->
         <el-tab-pane label="分布看板" name="distribution">
           <el-card class="card">
@@ -243,7 +243,7 @@
             </el-card>
           </div>
         </el-tab-pane>
-      </el-tabs>
+      </PageTabs>
     </el-scrollbar>
   </div>
 </template>

@@ -75,7 +75,7 @@
               </div>
               <div class="form-actions">
                 <el-button type="primary" :loading="batchLoading" @click="handleBatchMatch">
-                  <el-icon><MagicStick /></el-icon>
+                  <el-icon><ArtAiIcon /></el-icon>
                   开始 AI 匹配
                 </el-button>
                 <el-button @click="batchResults = []">清空结果</el-button>
@@ -192,7 +192,7 @@
               </div>
               <div class="form-actions">
                 <el-button type="primary" :loading="recommendLoading" @click="handleRecommend">
-                  <el-icon><MagicStick /></el-icon>
+                  <el-icon><ArtAiIcon /></el-icon>
                   AI 推荐职位
                 </el-button>
                 <el-button @click="recommendResults = []">清空结果</el-button>
@@ -482,9 +482,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { Plus, MagicStick } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
-import ModuleTabBar from '@/views/recruitment/_shared/ModuleTabBar.vue'
+import ModuleTabBar from '@/components/business/ModuleTabBar.vue'
 import {
   aiMatchResultApi,
   matchingRuleApi,
@@ -506,7 +506,7 @@ defineOptions({ name: 'RecruitmentAIMatching' })
 
 const resumeGroupTabs = [
   { label: '简历库', path: '/recruit/resume' },
-  { label: 'AI 智能匹配', path: '/recruit/ai-matching/x' }
+  { label: 'AI 智能匹配', path: '/recruit/ai-matching' }
 ]
 
 const activeTab = ref<'batch' | 'recommend' | 'rules' | 'history'>('batch')

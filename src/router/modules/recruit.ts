@@ -24,7 +24,7 @@ export const recruitRoutes: AppRouteRecord = {
       meta: { title: 'menus.recruit.demand', keepAlive: true, menuCode: 'recruit:demand' }
     },
     {
-      path: 'demand-pool/x',
+      path: 'demand-pool',
       name: 'RecruitDemandPool',
       component: () => import('@/views/recruitment/demand-pool/index.vue'),
       meta: {
@@ -35,7 +35,7 @@ export const recruitRoutes: AppRouteRecord = {
       }
     },
     {
-      path: 'demand-completion/x',
+      path: 'demand-completion',
       name: 'RecruitDemandCompletion',
       component: () => import('@/views/recruitment/demand-completion/index.vue'),
       meta: {
@@ -58,7 +58,7 @@ export const recruitRoutes: AppRouteRecord = {
       meta: { title: 'menus.recruit.resume', keepAlive: true, menuCode: 'recruit:resume' }
     },
     {
-      path: 'ai-matching/x',
+      path: 'ai-matching',
       name: 'RecruitAIMatching',
       component: () => import('@/views/recruitment/ai-matching/index.vue'),
       meta: {
@@ -86,6 +86,18 @@ export const recruitRoutes: AppRouteRecord = {
       meta: { title: 'menus.recruit.interview', keepAlive: true, menuCode: 'recruit:interview' }
     },
     {
+      path: 'interview-stats',
+      name: 'RecruitInterviewStats',
+      component: () => import('@/views/recruitment/interview-stats/index.vue'),
+      meta: {
+        title: 'menus.recruit.interviewStats',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/recruit/interview',
+        menuCode: 'recruit:interview'
+      }
+    },
+    {
       path: 'offer',
       name: 'RecruitOffer',
       component: () => import('@/views/recruitment/offer/index.vue'),
@@ -109,7 +121,31 @@ export const recruitRoutes: AppRouteRecord = {
       }
     },
     {
-      path: 'settings-automation/x',
+      path: 'background-check-package',
+      name: 'RecruitBackgroundCheckPackage',
+      component: () => import('@/views/recruitment/background-check/index.vue'),
+      meta: {
+        title: 'menus.recruit.backgroundCheckPackage',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/recruit/ops-background-check',
+        menuCode: 'recruit:ops'
+      }
+    },
+    {
+      path: 'background-check-cost',
+      name: 'RecruitBackgroundCheckCost',
+      component: () => import('@/views/recruitment/background-check/index.vue'),
+      meta: {
+        title: 'menus.recruit.backgroundCheckCost',
+        keepAlive: true,
+        isHide: true,
+        activePath: '/recruit/ops-background-check',
+        menuCode: 'recruit:ops'
+      }
+    },
+    {
+      path: 'settings-automation',
       name: 'RecruitSettingsAutomation',
       component: () => import('@/views/recruitment/automation/index.vue'),
       meta: {
@@ -133,7 +169,7 @@ export const recruitRoutes: AppRouteRecord = {
       meta: { title: 'menus.recruit.talentPool', keepAlive: true, menuCode: 'recruit:ops' }
     },
     {
-      path: 'settings-referral-rules/x',
+      path: 'settings-referral-rules',
       name: 'RecruitSettingsReferralRules',
       component: () => import('@/views/recruitment/referral-rules/index.vue'),
       meta: {
@@ -164,7 +200,7 @@ export const recruitRoutes: AppRouteRecord = {
       meta: { title: 'menus.recruit.config', keepAlive: true, menuCode: 'recruit:settings' }
     },
     {
-      path: 'settings-integrations/x',
+      path: 'settings-integrations',
       name: 'RecruitSettingsIntegrations',
       component: () => import('@/views/recruitment/integrations/index.vue'),
       meta: {

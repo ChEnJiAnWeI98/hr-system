@@ -92,7 +92,7 @@
 
 
     <el-scrollbar class="content-scrollbar">
-      <el-tabs v-model="activeTab" class="nps-tabs" @tab-change="handleTabChange">
+      <PageTabs v-model="activeTab" class="nps-tabs" @tab-change="handleTabChange">
         <!-- Tab 1: 调研看板 -->
         <el-tab-pane label="调研看板" name="dashboard">
           <el-card class="section-card">
@@ -331,7 +331,7 @@
             </div>
           </el-card>
         </el-tab-pane>
-      </el-tabs>
+      </PageTabs>
     </el-scrollbar>
 
     <!-- 调研详情 -->

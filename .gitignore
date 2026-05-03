@@ -6,6 +6,9 @@ dist-ssr
 *.local
 .cursorrules
 
+# Vite 编译缓存
+.vite
+
 # Auto-generated files
 # 注意: auto-imports.d.ts 和 components.d.ts 需要提交,
 # 否则 CI/CD(如 Vercel)跑 vue-tsc --noEmit 时找不到 ref/computed/ElMessage 等全局类型
@@ -14,3 +17,10 @@ dist-ssr
 
 # 项目用 pnpm,禁止 npm install 生成的 lock 文件入 git
 package-lock.json
+
+# 环境变量文件（含密钥/凭证，不入库；提交 .env.example 作为模板）
+.env
+.env.development
+.env.production
+.env.local
+.env.*.local

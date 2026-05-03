@@ -102,11 +102,11 @@ pnpm commit
 - 子路由需要在 `meta` 中添加 `isHide: true` 避免在菜单中重复显示
 - 一级菜单需要在 `meta` 中添加 `isFirstLevel: true` 标识
 - 新窗口打开页面：在父路由 `meta` 中添加 `openInNewWindow: true` 和 `newWindowPath`，并在静态路由中创建对应的全屏路由（设置 `isFullPage: true` 和 `isHide: true`）
-- **⚠️ 重要：子路由路径必须包含 `/` 字符**
-  - ❌ 错误：`path: 'create'` - 会导致父菜单被过滤掉
-  - ✅ 正确：`path: 'create/new'` - 父菜单正常显示
-  - **原因**：菜单构建器使用 `!relativePath.includes('/')` 判断是否为直接子路由。不包含 `/` 的路径会被识别为直接子路由，导致父菜单因所有子路由都隐藏而被过滤掉
-  - **规则**：所有带 `isHide: true` 的子路由，路径必须包含 `/`（如 `detail/:id`、`edit/:id`、`create/new`）
+- **hide 子路由 path 自由**（业界标准做法）
+  - `isHide: true` 的子路由 path 可以任意设计（如 `detail/:id`、`edit/:id`、`create`、`stats` 等）
+  - 菜单构建器会自动跳过 hide 路由，不参与父菜单可见性判断
+  - 实现位置：`src/router/guards/beforeEach.ts` 的 `buildMenuItemFromRoute` 函数
+  - 历史背景：早期版本曾要求 hide 路由 path 含 `/` 后缀（如 `/x`），是 workaround；现已修复菜单构建器逻辑，不再需要 `/x` 占位
 - 路由结构示例：
   ```typescript
   export const exampleRoutes: AppRouteRecord = {
@@ -896,6 +896,24 @@ const handleDragEnd = async () => {
 - 图标字体大小一般设置为18px
 - **Element Plus 图标用前核对存在性**：不存在的图标名（如 `Magic` 实为 `MagicStick`）会导致动态 import 失败，报错表现为 "Failed to fetch dynamically imported module"。可疑时先 `grep` 或去 Element Plus 图标官网确认
 
+#### AI 功能图标规范（⚠️ B 端不用 emoji）
+- **所有 AI 入口/标识统一使用 `<ArtAiIcon />`**（SVG 4 角 sparkle，对齐国际事实标准 GitHub Copilot / Google Gemini / 飞书 / 钉钉）
+- **禁止在 UI 里用 emoji ✨ / 📊 / 📄 / 🤖 等表示 AI**：emoji 在不同操作系统/浏览器渲染差异大（macOS 渐变金色、Windows 黑白线条、Linux 服务器可能显示方块），不适合 B 端
+- **使用方式**：
+  ```vue
+  <!-- 入口按钮 -->
+  <el-button type="primary" plain>
+    <el-icon><ArtAiIcon /></el-icon>
+    AI 简历解析     <!-- 文字必须明确描述具体能力 -->
+  </el-button>
+
+  <!-- AI 输出区标识（Drawer/Dialog 内表示"这是 AI 生成"）-->
+  <el-icon class="ai-icon"><ArtAiIcon /></el-icon>
+  <span>AI 观察</span>
+  ```
+- **位置**：`src/components/business/ArtAiIcon.vue`，已配置自动导入，**无需手动 import**
+- **不同 AI 能力不要用不同图标**：保持单一 sparkle 标识 + 文字精确描述能力（参考 NN/G 研究：图标承担"这是 AI"的辨识，文字承担精确能力描述）
+
 #### Vue 模板属性值引号规则（⚠️ 已多次踩坑）
 - **HTML 属性值用双引号 `"..."` 包裹时，值内部不能再出现半角双引号 `"`**，否则 Vue 编译器会在第一个内部 `"` 处截断属性，导致报错 "Element is missing end tag" 或 "Attribute name cannot contain U+0022"
 - 典型错误场景：中文文案里加"引号强调"
@@ -1221,17 +1239,6 @@ export function deleteItem(id: number) {
   - `updateItem` - 更新
   - `deleteItem` - 删除
   - `batchDeleteItems` - 批量删除
-
-#### 清理脚本规范
-- **清理脚本已固定**：`scripts/clean-demo-modules.js` 已配置好保留的模块列表
-- **实现新功能时不需要更新清理脚本**
-- 清理脚本会自动保留以下内容：
-  - `KEEP_MODULES.views` - 保留的视图目录
-  - `KEEP_MODULES.router` - 保留的路由文件
-  - `KEEP_MODULES.api` - 保留的 API 文件
-  - `KEEP_MODULES.mock` - 保留的 Mock 文件
-  - `KEEP_MODULES.i18nPrefixes` - 保留的国际化前缀
-
 
 
 ## 架构概述

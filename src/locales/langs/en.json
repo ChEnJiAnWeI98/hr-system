@@ -202,11 +202,6 @@
     "gohome": "Go Home"
   },
   "menus": {
-    "permissionTemplate": {
-      "title": "Permission",
-      "role": "Role Management",
-      "menu": "Menu Management"
-    },
     "attendance": {
       "title": "Attendance & Leave",
       "rule": "Attendance Rules",
@@ -251,6 +246,9 @@
       "fieldChangeLog": "Field Change Log",
       "notification": "Notification Configuration",
       "param": "System Parameters",
+      "paramSecurity": "Security Config",
+      "paramBusiness": "Business Config",
+      "paramNotification": "Notification Config",
       "approvalTemplate": "Approval Template",
       "approvalDesigner": "Process Designer",
       "approvalInstance": "Approval Instance",
@@ -306,9 +304,12 @@
       "resumeDetail": "Candidate Detail",
       "aiMatching": "AI Matching",
       "interview": "Interview",
+      "interviewStats": "Interviewer Stats",
       "offer": "Offer Management",
       "onboarding": "Onboarding",
       "backgroundCheck": "Background Check",
+      "backgroundCheckPackage": "BG Packages",
+      "backgroundCheckCost": "BG Cost",
       "automation": "Automation Rules",
       "budget": "Recruitment Budget",
       "talentPool": "Talent Pool",
@@ -324,8 +325,11 @@
       "payroll": "Payroll Calculation",
       "payslip": "Payslip",
       "tax": "Income Tax",
+      "taxDeduction": "Special Deductions",
+      "taxSettlement": "Year Settlement",
       "adjustment": "Salary Adjustment",
       "welfare": "Welfare",
+      "welfareGrant": "Grants",
       "report": "Compensation Report"
     },
     "social": {
@@ -348,10 +352,14 @@
       "archive": "Performance Archive",
       "oneOnOne": "1on1 Feedback",
       "badges": "Recognition Badges",
+      "badgesQuota": "Quota",
+      "badgesAward": "Awards",
+      "badgesRule": "Bonus Rules",
       "pip": "PIP Improvement",
       "appeal": "Performance Appeal",
       "template": "Evaluation Template",
       "applyRules": "Result Application",
+      "applyRulesRecord": "Execution Records",
       "tasks": "Performance Tasks"
     },
     "insight": {

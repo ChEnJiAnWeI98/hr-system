@@ -257,25 +257,12 @@
             <el-input v-model="feedbackForm.strengths" type="textarea" :rows="3" placeholder="至少 20 字，描述具体行为或事例" />
           </el-form-item>
           <el-form-item label="改进建议">
-            <el-input v-model="feedbackForm.improvements" type="textarea" :rows="3" />
-            <div class="ai-inline-toolbar">
-              <AIAssistPopover
-                v-model="aiRewriteVisible"
-                ability-code="feedback_rewrite"
-                :input-text="feedbackForm.improvements"
-                :target-employee="feedbackTarget?.subjectName || ''"
-                @adopt="(out) => (feedbackForm.improvements = out)"
-              >
-                <el-button
-                  link
-                  type="primary"
-                  :disabled="!feedbackForm.improvements?.trim()"
-                  @click="aiRewriteVisible = true"
-                >
-                  ✨ AI 改写为 SBI
-                </el-button>
-              </AIAssistPopover>
-            </div>
+            <el-input
+              v-model="feedbackForm.improvements"
+              type="textarea"
+              :rows="3"
+              placeholder="建议按 SBI 结构描述：在什么情境（Situation）下，观察到什么行为（Behavior），造成了什么影响（Impact），最后给出建议"
+            />
           </el-form-item>
         </el-form>
       </el-scrollbar>
@@ -326,12 +313,11 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import ModuleTabBar from '@/views/performance/_shared/ModuleTabBar.vue'
-import AIAssistPopover from '@/components/business/AIAssistPopover.vue'
+import ModuleTabBar from '@/components/business/ModuleTabBar.vue'
 
 const evalGroupTabs = [
   { label: '绩效评估', path: '/perf/evaluation' },
-  { label: '360 度评估', path: '/perf/review-360/x' }
+  { label: '360 度评估', path: '/perf/review-360' }
 ]
 import {
   getReviewerRelations,
@@ -469,7 +455,6 @@ const submitNominate = async () => {
 
 /* ========== 填写反馈 ========== */
 const feedbackVisible = ref(false)
-const aiRewriteVisible = ref(false)
 const feedbackTarget = ref<ReviewerRelation | null>(null)
 const feedbackScores = ref<Array<{ dimension: string; score: number }>>([])
 const feedbackForm = reactive({ strengths: '', improvements: '' })
@@ -564,6 +549,7 @@ onMounted(() => loadRelations())
   height: 100%;
   display: flex;
   flex-direction: column;
+  gap: 16px;
 }
 
 .review-tabs {

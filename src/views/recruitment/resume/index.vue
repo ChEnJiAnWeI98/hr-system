@@ -31,6 +31,14 @@
             </el-select>
           </el-form-item>
 
+          <el-form-item label="仅看">
+            <el-checkbox v-model="onlyStarred" @change="handleStarredFilterChange">
+              <el-icon class="filter-star-icon"><StarFilled /></el-icon>
+              我的收藏
+              <span v-if="starredCount > 0" class="filter-star-count">({{ starredCount }})</span>
+            </el-checkbox>
+          </el-form-item>
+
           <el-form-item label=" ">
             <div class="filter-buttons">
               <el-button type="primary" @click="handleSearch">搜索</el-button>
@@ -60,12 +68,24 @@
 
       <div class="table-container">
         <el-table
-          :data="tableData"
+          :data="filteredTableData"
           height="100%"
           style="width: 100%"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" min-width="5%" />
+          <el-table-column label="" width="48" align="center">
+            <template #default="{ row }">
+              <el-icon
+                class="row-star"
+                :class="{ 'row-star-on': isStarred(row.id) }"
+                @click.stop="toggleStar(row.id)"
+              >
+                <StarFilled v-if="isStarred(row.id)" />
+                <Star v-else />
+              </el-icon>
+            </template>
+          </el-table-column>
           <el-table-column prop="resumeNo" label="简历编号" min-width="10%" />
           <el-table-column label="候选人" min-width="10%">
             <template #default="{ row }">
@@ -157,152 +177,6 @@
       />
     </el-card>
 
-    <!-- 详情弹窗（改为 Tab 模式：基本信息 / 团队讨论） -->
-    <el-dialog v-model="detailVisible" title="简历详情" width="860px" :close-on-click-modal="false">
-      <el-tabs v-model="detailTab">
-        <el-tab-pane label="基本信息" name="info">
-          <el-scrollbar height="500px">
-            <el-descriptions :column="2" border>
-              <el-descriptions-item label="简历编号">{{ currentResume?.resumeNo }}</el-descriptions-item>
-              <el-descriptions-item label="候选人姓名">
-                {{ currentResume?.candidateName }}
-                <el-tag v-if="currentResume?.talentProfileId" size="small" type="success" style="margin-left: 6px">
-                  档案ID: {{ currentResume.talentProfileId }}
-                </el-tag>
-              </el-descriptions-item>
-              <el-descriptions-item label="性别">{{ currentResume?.gender === 1 ? '男' : '女' }}</el-descriptions-item>
-              <el-descriptions-item label="年龄">{{ currentResume?.age }}岁</el-descriptions-item>
-              <el-descriptions-item label="手机号">{{ currentResume?.phone }}</el-descriptions-item>
-              <el-descriptions-item label="邮箱">{{ currentResume?.email }}</el-descriptions-item>
-              <el-descriptions-item label="现居地" :span="2">{{ currentResume?.location }}</el-descriptions-item>
-              <el-descriptions-item label="应聘岗位">{{ currentResume?.position }}</el-descriptions-item>
-              <el-descriptions-item label="工作年限">{{ currentResume?.workYears }}年</el-descriptions-item>
-              <el-descriptions-item label="学历">{{ currentResume?.education }}</el-descriptions-item>
-              <el-descriptions-item label="期望薪资">{{ currentResume?.expectedSalary }}</el-descriptions-item>
-              <el-descriptions-item label="毕业院校">{{ currentResume?.school }}</el-descriptions-item>
-              <el-descriptions-item label="专业">{{ currentResume?.major }}</el-descriptions-item>
-              <el-descriptions-item label="来源渠道">{{ currentResume?.source }}</el-descriptions-item>
-              <el-descriptions-item label="JD 匹配度">
-                <el-tag
-                  v-if="currentResume?.jdMatchScore != null"
-                  :type="currentResume.jdMatchScore >= 75 ? 'success' : currentResume.jdMatchScore >= 60 ? 'warning' : 'danger'"
-                  size="small"
-                >
-                  {{ currentResume.jdMatchScore }} 分
-                </el-tag>
-                <span v-else>-</span>
-              </el-descriptions-item>
-              <el-descriptions-item label="解析状态">
-                <el-tag v-if="currentResume?.parseStatus === 'success'" size="small" type="success">已解析</el-tag>
-                <el-tag v-else-if="currentResume?.parseStatus === 'manual'" size="small">人工修正</el-tag>
-                <el-tag v-else size="small" type="info">-</el-tag>
-              </el-descriptions-item>
-              <el-descriptions-item label="状态">
-                <el-tag v-if="currentResume?.status === 1" type="info">待筛选</el-tag>
-                <el-tag v-else-if="currentResume?.status === 2" type="warning">待面试</el-tag>
-                <el-tag v-else-if="currentResume?.status === 3" type="primary">面试中</el-tag>
-                <el-tag v-else-if="currentResume?.status === 4" type="success">已入库</el-tag>
-                <el-tag v-else-if="currentResume?.status === 5" type="danger">已淘汰</el-tag>
-              </el-descriptions-item>
-              <el-descriptions-item v-if="currentResume?.rejectReasonText" label="淘汰原因" :span="2">
-                <el-alert
-                  type="error"
-                  :closable="false"
-                  show-icon
-                  :title="`${currentResume.rejectReasonText}（${currentResume.rejectByName || '-'} ${currentResume.rejectTime || ''}）`"
-                />
-              </el-descriptions-item>
-              <el-descriptions-item label="标签" :span="2">
-                <el-tag v-for="tag in currentResume?.tags" :key="tag" style="margin-right: 4px">
-                  {{ tag }}
-                </el-tag>
-              </el-descriptions-item>
-              <el-descriptions-item label="工作经历" :span="2">
-                <div style="white-space: pre-wrap">{{ currentResume?.workExperience }}</div>
-              </el-descriptions-item>
-              <el-descriptions-item label="项目经历" :span="2">
-                <div style="white-space: pre-wrap">{{ currentResume?.projectExperience }}</div>
-              </el-descriptions-item>
-              <el-descriptions-item label="自我评价" :span="2">
-                <div style="white-space: pre-wrap">{{ currentResume?.selfEvaluation }}</div>
-              </el-descriptions-item>
-              <el-descriptions-item label="创建时间">{{ currentResume?.createTime }}</el-descriptions-item>
-              <el-descriptions-item label="更新时间">{{ currentResume?.updateTime }}</el-descriptions-item>
-            </el-descriptions>
-          </el-scrollbar>
-        </el-tab-pane>
-
-        <el-tab-pane label="✨ AI 解析" name="ai-parse">
-          <div class="ai-parse-panel">
-            <el-alert
-              type="info"
-              :closable="false"
-              show-icon
-              style="margin-bottom: 12px"
-              title="AI 简历解析"
-              description="AI 基于工作经历+期望薪资抽取结构化字段并分析岗位匹配度。结果为草稿参考，入库前请 HR 核对关键字段。"
-            />
-            <div v-if="aiParseLoading" class="ai-parse-loading">
-              <el-icon class="is-loading"><Loading /></el-icon>
-              <span>AI 正在解析简历中…</span>
-            </div>
-            <el-scrollbar v-else-if="aiParseOutput" max-height="480px">
-              <pre class="ai-parse-output">{{ aiParseOutput }}</pre>
-              <div class="ai-parse-footer">
-                <el-button size="small" @click="triggerResumeParse">重新解析</el-button>
-              </div>
-            </el-scrollbar>
-            <div v-else class="ai-parse-empty">
-              <span class="ai-parse-hint">切换到本 Tab 时将自动调用 AI 解析…</span>
-            </div>
-          </div>
-        </el-tab-pane>
-
-        <el-tab-pane :label="`团队讨论（${notes.length}）`" name="notes">
-          <div class="notes-panel">
-            <div class="notes-list">
-              <div v-if="notes.length === 0" class="notes-empty">
-                暂无团队讨论，来发表第一条评论吧
-              </div>
-              <div v-for="n in notes" :key="n.id" class="note-item">
-                <div class="note-head">
-                  <span class="note-author">{{ n.authorName }}</span>
-                  <span class="note-time">{{ n.createTime }}</span>
-                  <el-button
-                    v-if="n.authorId === userStore.getUserInfo.id"
-                    link
-                    type="danger"
-                    @click="handleDeleteNote(n.id)"
-                  >
-                    删除
-                  </el-button>
-                </div>
-                <div class="note-content" v-html="formatMention(n.content)"></div>
-              </div>
-            </div>
-            <div class="notes-input">
-              <el-input
-                v-model="noteInput"
-                type="textarea"
-                :rows="3"
-                placeholder="支持 @提醒他人（如 @张HR），按 Ctrl+Enter 发送"
-                @keydown.ctrl.enter="handleSubmitNote"
-              />
-              <div class="notes-tip">
-                <span class="hint">内部可见，候选人看不到</span>
-                <el-button type="primary" :disabled="!noteInput.trim()" @click="handleSubmitNote">
-                  发表评论
-                </el-button>
-              </div>
-            </div>
-          </div>
-        </el-tab-pane>
-      </el-tabs>
-
-      <template #footer>
-        <el-button @click="detailVisible = false">关闭</el-button>
-      </template>
-    </el-dialog>
 
     <!-- 安排面试弹窗 -->
     <el-dialog v-model="interviewVisible" title="安排面试" width="600px" :close-on-click-modal="false">
@@ -453,17 +327,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Upload, Document, Loading } from '@element-plus/icons-vue'
+import { Upload, Document, Loading, Star, StarFilled } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/modules/user'
-import ModuleTabBar from '@/views/recruitment/_shared/ModuleTabBar.vue'
-import type { Resume, ResumeListParams, CandidateNote } from '@/types/recruitment'
+import ModuleTabBar from '@/components/business/ModuleTabBar.vue'
+import type { Resume, ResumeListParams } from '@/types/recruitment'
 
 const resumeGroupTabs = [
   { label: '简历库', path: '/recruit/resume' },
-  { label: 'AI 智能匹配', path: '/recruit/ai-matching/x' }
+  { label: 'AI 智能匹配', path: '/recruit/ai-matching' }
 ]
 import { REJECT_REASON_OPTIONS } from '@/types/recruitment'
 import {
@@ -475,10 +349,7 @@ import {
   scheduleInterview,
   rejectResume,
   checkDuplicateResume,
-  linkResumeToTalent,
-  getCandidateNotes,
-  addCandidateNote,
-  deleteCandidateNote
+  linkResumeToTalent
 } from '@/api/recruitment/resume'
 import { dedupeCheck, talentProfileApi } from '@/api/talentPool'
 
@@ -505,34 +376,8 @@ const tableData = ref<Resume[]>([])
 const total = ref(0)
 const selectedIds = ref<number[]>([])
 
-// 详情弹窗
-const detailVisible = ref(false)
-const detailTab = ref<'info' | 'ai-parse' | 'notes'>('info')
+// 当前操作的简历（用于安排面试 / Offer 等弹窗）
 const currentResume = ref<Resume>()
-// AI 简历解析
-const aiParseOutput = ref('')
-const aiParseLoading = ref(false)
-const triggerResumeParse = async () => {
-  if (!currentResume.value || aiParseLoading.value) return
-  aiParseLoading.value = true
-  try {
-    const { invokeAIAbility } = await import('@/api/performanceAI')
-    const input = `姓名：${currentResume.value.candidateName}\n学历：${currentResume.value.education} - ${currentResume.value.school} ${currentResume.value.major}\n工作经历：\n${currentResume.value.workExperience}\n期望薪资：${currentResume.value.expectedSalary}`
-    const res: any = await invokeAIAbility('resume_parse', input, 'HR-Lisa', currentResume.value.candidateName)
-    aiParseOutput.value = res.data.output
-  } finally {
-    aiParseLoading.value = false
-  }
-}
-
-// 切到 AI 解析 Tab 时首次自动触发
-watch(detailTab, (v) => {
-  if (v === 'ai-parse' && !aiParseOutput.value && !aiParseLoading.value && currentResume.value) {
-    triggerResumeParse()
-  }
-})
-const notes = ref<CandidateNote[]>([])
-const noteInput = ref('')
 
 // 安排面试弹窗
 const interviewVisible = ref(false)
@@ -574,6 +419,46 @@ const fetchData = async () => {
     ElMessage.error('获取数据失败')
   }
 }
+
+/* ========== 收藏功能（与 ResumeParseDrawer 共用 localStorage key） ========== */
+
+const STAR_KEY = 'hr_starred_resumes'
+const starredIds = ref<number[]>([])
+const onlyStarred = ref(false)
+
+const loadStarred = () => {
+  starredIds.value = JSON.parse(localStorage.getItem(STAR_KEY) || '[]')
+}
+
+const isStarred = (id: number) => starredIds.value.includes(id)
+
+const toggleStar = (id: number) => {
+  const ids = [...starredIds.value]
+  const idx = ids.indexOf(id)
+  if (idx >= 0) {
+    ids.splice(idx, 1)
+    ElMessage.info('已取消收藏')
+  } else {
+    ids.push(id)
+    ElMessage.success('已收藏')
+  }
+  localStorage.setItem(STAR_KEY, JSON.stringify(ids))
+  starredIds.value = ids
+}
+
+const starredCount = computed(() => starredIds.value.length)
+
+const handleStarredFilterChange = () => {
+  // 切换筛选时刷新（搭配 computed filteredTableData）
+}
+
+// 显示数据：是否仅看收藏
+const filteredTableData = computed(() => {
+  if (!onlyStarred.value) return tableData.value
+  return tableData.value.filter((r) => starredIds.value.includes(r.id))
+})
+
+loadStarred()
 
 const handleSearch = () => {
   queryParams.page = 1
@@ -695,42 +580,6 @@ const handleBatchDelete = async () => {
 // 查看详情 · 跳转 360° 候选人详情页（#8 改造）
 const handleView = (row: Resume) => {
   router.push(`/recruit/resume/detail/${row.id}`)
-}
-
-const loadNotes = async (resumeId: number) => {
-  const res = await getCandidateNotes(resumeId)
-  if (res.code === 200) notes.value = res.data
-}
-
-// 发表评论
-const handleSubmitNote = async () => {
-  if (!noteInput.value.trim() || !currentResume.value) return
-  const u = userStore.getUserInfo
-  await addCandidateNote({
-    resumeId: currentResume.value.id,
-    authorId: u.id,
-    authorName: u.nickname,
-    content: noteInput.value.trim()
-  })
-  noteInput.value = ''
-  await loadNotes(currentResume.value.id)
-  ElMessage.success('评论已发布')
-}
-
-const handleDeleteNote = async (id: number) => {
-  try {
-    await ElMessageBox.confirm('确定删除这条评论吗？', '提示', { type: 'warning' })
-    await deleteCandidateNote(id)
-    if (currentResume.value) await loadNotes(currentResume.value.id)
-    ElMessage.success('已删除')
-  } catch {
-    // 取消
-  }
-}
-
-// 将 @姓名 格式化为高亮
-const formatMention = (text: string) => {
-  return text.replace(/@(\S+)/g, '<span style="color: var(--el-color-primary);">@$1</span>')
 }
 
 const handleScheduleInterview = (row: Resume) => {
@@ -893,6 +742,10 @@ const handleConfirmReject = async () => {
 onMounted(() => {
   fetchData()
 })
+
+onActivated(() => {
+  loadStarred()
+})
 </script>
 
 <style scoped lang="scss">
@@ -1030,71 +883,32 @@ onMounted(() => {
   }
 }
 
-.notes-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+/* 收藏：表格行星标 */
+.row-star {
+  font-size: 18px;
+  color: #c0c4cc;
+  cursor: pointer;
+  transition: color 0.15s ease;
 
-  .notes-list {
-    max-height: 380px;
-    overflow-y: auto;
-
-    .notes-empty {
-      text-align: center;
-      color: #909399;
-      padding: 60px 0;
-      font-size: 13px;
-    }
-
-    .note-item {
-      padding: 12px 0;
-      border-bottom: 1px solid #ebeef5;
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .note-head {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 6px;
-
-        .note-author {
-          font-size: 14px;
-          font-weight: 500;
-          color: #303133;
-        }
-
-        .note-time {
-          font-size: 12px;
-          color: #909399;
-        }
-      }
-
-      .note-content {
-        font-size: 13px;
-        color: #606266;
-        line-height: 1.6;
-      }
-    }
+  &:hover {
+    color: #f7ba2a;
   }
 
-  .notes-input {
-    border-top: 1px solid #ebeef5;
-    padding-top: 12px;
-
-    .notes-tip {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 8px;
-
-      .hint {
-        font-size: 12px;
-        color: #909399;
-      }
-    }
+  &.row-star-on {
+    color: #f7ba2a;
   }
+}
+
+/* 收藏：筛选 checkbox 内的星标与计数 */
+.filter-star-icon {
+  color: #f7ba2a;
+  margin-right: 4px;
+  vertical-align: -2px;
+}
+
+.filter-star-count {
+  margin-left: 4px;
+  color: #909399;
+  font-size: 12px;
 }
 </style>

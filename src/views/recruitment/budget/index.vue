@@ -26,7 +26,7 @@
     </div>
 
     <el-scrollbar class="content-scrollbar">
-      <el-tabs v-model="activeTab" class="budget-tabs" @tab-change="handleTabChange">
+      <PageTabs v-model="activeTab" class="budget-tabs" @tab-change="handleTabChange">
         <!-- Tab 1: 预算总览 -->
         <el-tab-pane label="预算总览" name="overview">
           <el-card class="section-card">
@@ -262,7 +262,7 @@
             </el-table>
           </el-card>
         </el-tab-pane>
-      </el-tabs>
+      </PageTabs>
     </el-scrollbar>
 
     <!-- 预算编辑弹窗 -->

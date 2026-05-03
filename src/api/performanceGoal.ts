@@ -7,7 +7,10 @@ import type {
   PerformanceGoal,
   GoalProgressLog,
   GoalTemplate,
-  KeyResult
+  KeyResult,
+  GoalRevision,
+  RevisionSnapshot,
+  RevisionReasonCode
 } from '@/types/performanceGoal'
 import {
   performanceGoalMock,
@@ -17,7 +20,11 @@ import {
   resubmitGoalMock,
   updateGoalProgressMock,
   freezeGoalsByCycleMock,
-  createGoalFromTemplateMock
+  createGoalFromTemplateMock,
+  submitRevisionMock,
+  approveRevisionMock,
+  rejectRevisionMock,
+  getRevisionHistoryMock
 } from '@/mock/performanceGoal'
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
@@ -156,5 +163,75 @@ export function createGoalFromTemplate(templateId: number, overrides: Partial<Pe
   return request.post({
     url: `/admin/performance/goal/from-template`,
     data: { templateId, overrides }
+  })
+}
+
+/* ========== 目标修订（业界共识：飞书/钉钉/Lattice 已批准期 O/KR 描述锁，要改走审批）========== */
+
+/**
+ * 提交目标修订申请
+ */
+export function submitGoalRevision(
+  goalId: number,
+  data: {
+    after: RevisionSnapshot
+    reasonCode: RevisionReasonCode
+    reasonDetail?: string
+    applicantId: number
+    applicantName: string
+  }
+) {
+  if (USE_MOCK) return mockResolve(() => submitRevisionMock(goalId, data), '修订申请已提交')
+  return request.post({
+    url: `/admin/performance/goal/${goalId}/revision`,
+    data
+  })
+}
+
+/**
+ * 审批通过修订
+ */
+export function approveGoalRevision(
+  revisionId: number,
+  data: {
+    approverId: number
+    approverName: string
+    approveComment?: string
+  }
+) {
+  if (USE_MOCK) return mockResolve(() => approveRevisionMock(revisionId, data), '修订已生效')
+  return request.post({
+    url: `/admin/performance/goal/revision/${revisionId}/approve`,
+    data
+  })
+}
+
+/**
+ * 驳回修订
+ */
+export function rejectGoalRevision(
+  revisionId: number,
+  data: {
+    approverId: number
+    approverName: string
+    approveComment: string
+  }
+) {
+  if (USE_MOCK) return mockResolve(() => rejectRevisionMock(revisionId, data), '修订已驳回')
+  return request.post({
+    url: `/admin/performance/goal/revision/${revisionId}/reject`,
+    data
+  })
+}
+
+/**
+ * 拉取目标的修订历史
+ */
+export function getGoalRevisionHistory(goalId: number) {
+  if (USE_MOCK) {
+    return mockResolve<GoalRevision[]>(() => getRevisionHistoryMock(goalId))
+  }
+  return request.get({
+    url: `/admin/performance/goal/${goalId}/revisions`
   })
 }

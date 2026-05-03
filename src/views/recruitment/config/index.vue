@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import ModuleTabBar from '@/views/recruitment/_shared/ModuleTabBar.vue'
+import ModuleTabBar from '@/components/business/ModuleTabBar.vue'
 import InterviewTemplateTab from './components/InterviewTemplateTab.vue'
 import OfferTemplateTab from './components/OfferTemplateTab.vue'
 import NotificationTemplateTab from './components/NotificationTemplateTab.vue'
@@ -42,9 +42,9 @@ defineOptions({
 
 const settingsGroupTabs = [
   { label: '招聘配置中心', path: '/recruit/settings-config' },
-  { label: '自动化规则', path: '/recruit/settings-automation/x' },
-  { label: '内推规则', path: '/recruit/settings-referral-rules/x' },
-  { label: '外部集成', path: '/recruit/settings-integrations/x' }
+  { label: '自动化规则', path: '/recruit/settings-automation' },
+  { label: '内推规则', path: '/recruit/settings-referral-rules' },
+  { label: '外部集成', path: '/recruit/settings-integrations' }
 ]
 
 const activeTab = ref('interview')
@@ -55,6 +55,7 @@ const activeTab = ref('interview')
   height: 100%;
   display: flex;
   flex-direction: column;
+  gap: 16px;
 }
 
 .config-card {

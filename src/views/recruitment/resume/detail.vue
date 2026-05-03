@@ -9,8 +9,21 @@
         </el-button>
         <span class="divider">|</span>
         <span class="page-info">候选人详情 · {{ resume?.candidateName || '—' }}</span>
+        <div class="breadcrumb-spacer"></div>
+        <el-button type="primary" plain :disabled="!resume" @click="aiParseVisible = true">
+          <el-icon><ArtAiIcon /></el-icon>
+          AI 简历解析
+        </el-button>
       </div>
     </el-card>
+
+    <!-- AI 简历解析 Drawer（与详情页并存，仅参考不污染候选人档案） -->
+    <ResumeParseDrawer
+      v-model="aiParseVisible"
+      :context-input="buildResumeParseInput()"
+      :candidate-name="resume?.candidateName || ''"
+      :resume-raw="resume"
+    />
 
     <!-- 主体 · 左候选人卡 + 右时间线 -->
     <div class="detail-layout" v-loading="loading">
@@ -340,10 +353,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Document, ChatDotRound, Search, Medal } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import ResumeParseDrawer from './ResumeParseDrawer.vue'
 import { getResumeDetail } from '@/api/recruitment/resume'
 import { getInterviewsByCandidateName } from '@/api/recruitment/interview'
 import { getBackgroundChecksByCandidateName } from '@/api/backgroundCheck'
 import { getOffersByCandidateName } from '@/api/offer'
+import { getJobPostingDetail } from '@/api/jobPosting'
 import type { Resume, Interview, Offer } from '@/types/recruitment'
 import type { BackgroundCheck } from '@/types/backgroundCheck'
 import {
@@ -363,6 +378,27 @@ const resume = ref<Resume | null>(null)
 const interviews = ref<Interview[]>([])
 const bgChecks = ref<BackgroundCheck[]>([])
 const offers = ref<Offer[]>([])
+
+// AI 简历解析（Drawer 抽屉，仅参考）
+const aiParseVisible = ref(false)
+const buildResumeParseInput = (): string => {
+  if (!resume.value) return ''
+  const r = resume.value
+  // Mock 阶段：拼接 NER 输入；真接入 LLM 时由后端将原始简历文件文本传入
+  return `姓名：${r.candidateName || '-'}
+性别：${r.gender === 1 ? '男' : '女'}
+年龄：${r.age || '-'} 岁
+学历：${r.education || '-'} - ${r.school || '-'} ${r.major || ''}
+工作经历：
+${r.workExperience || '（暂无）'}
+
+项目经历：
+${r.projectExperience || '（暂无）'}
+
+期望薪资：${r.expectedSalary || '-'}
+应聘岗位：${r.position || '-'}
+工作年限：${r.workYears || 0} 年`
+}
 
 // 面试类型 label
 const interviewTypeLabel = (t: number | undefined) => {
@@ -527,8 +563,21 @@ const handleInitiateBGC = () => {
   })
 }
 
-const handleCreateOffer = () => {
+const handleCreateOffer = async () => {
   if (!resume.value) return
+  // 候选人 Resume 没有 departmentName 字段（关联 jobId → JobPosting 才有）
+  // 真接入业务流：从 JobPosting 拉部门 + 工作地点 + 中位薪资等关联数据
+  let departmentName = ''
+  let workLocation = ''
+  if (resume.value.jobId) {
+    try {
+      const res: any = await getJobPostingDetail(resume.value.jobId)
+      departmentName = res?.data?.departmentName || ''
+      workLocation = res?.data?.workLocation || ''
+    } catch {
+      // 拉不到不阻塞 Offer 创建，只是部门为空让 HR 手动确认
+    }
+  }
   router.push({
     path: '/recruit/offer',
     query: {
@@ -536,7 +585,9 @@ const handleCreateOffer = () => {
       from: 'detail',
       candidateName: resume.value.candidateName,
       positionName: resume.value.position,
-      resumeId: String(resume.value.id)
+      resumeId: String(resume.value.id),
+      departmentName,
+      workLocation
     }
   })
 }
@@ -574,7 +625,8 @@ onMounted(() => {
     width: 100%;
     height: 60px;
 
-    .el-button {
+    /* 返回按钮（text 类型）专属样式——不影响其他按钮 */
+    & > .el-button.is-text {
       font-size: 14px;
       color: #606266;
       padding: 0;
@@ -597,6 +649,10 @@ onMounted(() => {
       font-size: 14px;
       color: #303133;
       font-weight: 500;
+    }
+
+    .breadcrumb-spacer {
+      flex: 1;
     }
   }
 }

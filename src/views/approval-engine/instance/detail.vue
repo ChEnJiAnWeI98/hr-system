@@ -31,7 +31,7 @@
     <!-- 滚动内容区域 -->
     <el-scrollbar class="content-scrollbar">
       <!-- 标签页 -->
-      <el-tabs v-model="activeTab" class="detail-tabs">
+      <PageTabs v-model="activeTab" class="detail-tabs">
         <!-- 基本信息标签页 -->
         <el-tab-pane label="基本信息" name="basic">
           <!-- 基本信息卡片 -->
@@ -176,7 +176,7 @@
             </el-table>
           </el-card>
         </el-tab-pane>
-      </el-tabs>
+      </PageTabs>
     </el-scrollbar>
   </div>
 </template>

@@ -1,15 +1,7 @@
 <template>
   <div class="interview-container">
-    <!-- 视图切换 -->
-    <div class="view-switcher">
-      <el-radio-group v-model="viewMode">
-        <el-radio-button value="list">面试列表</el-radio-button>
-        <el-radio-button value="interviewer">面试官效率</el-radio-button>
-      </el-radio-group>
-    </div>
-
+    <ModuleTabBar :tabs="interviewGroupTabs" />
     <!-- 面试列表视图 -->
-    <template v-if="viewMode === 'list'">
     <!-- 筛选卡片 -->
     <el-card class="filter-card">
       <el-form :model="queryParams">
@@ -369,10 +361,6 @@
         </div>
       </template>
     </el-dialog>
-    </template>
-
-    <!-- 面试官效率视图 -->
-    <InterviewerEfficiencyTab v-else />
   </div>
 </template>
 
@@ -381,8 +369,13 @@ import { ref, reactive, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import InterviewerEfficiencyTab from './components/InterviewerEfficiencyTab.vue'
+import ModuleTabBar from '@/components/business/ModuleTabBar.vue'
 import CandidatePicker from '@/views/recruitment/_shared/CandidatePicker.vue'
+
+const interviewGroupTabs = [
+  { label: '面试列表', path: '/recruit/interview' },
+  { label: '面试官效率', path: '/recruit/interview-stats' }
+]
 import type { Resume, Interview, InterviewListParams } from '@/types/recruitment'
 import {
   getInterviewList,
@@ -404,9 +397,6 @@ import { computed } from 'vue'
 const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
-
-// 视图切换
-const viewMode = ref<'list' | 'interviewer'>('list')
 
 // 选中简历池候选人 → 预填关联字段
 const onCandidatePick = (r: Resume) => {
@@ -802,9 +792,6 @@ onMounted(async () => {
   gap: 16px;
 }
 
-.view-switcher {
-  flex-shrink: 0;
-}
 
 /* Phase 2.2 新增样式 */
 .form-hint {

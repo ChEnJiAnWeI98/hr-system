@@ -135,7 +135,7 @@
         </el-form-item>
         <div style="text-align: right; margin-bottom: 12px">
           <el-button type="primary" :loading="calling" @click="handleInvoke">
-            <el-icon v-if="!calling"><MagicStick /></el-icon>
+            <el-icon v-if="!calling"><ArtAiIcon /></el-icon>
             调用 AI
           </el-button>
         </div>
@@ -168,7 +168,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { MagicStick } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import {
@@ -193,8 +192,7 @@ const router = useRouter()
 const ABILITY_ENTRY: Record<AIAbilityCode, string> = {
   okr_check: '目标管理 · 新建/编辑目标时',
   meeting_agenda: '1on1 管理 / 绩效面谈 · 准备内容旁',
-  risk_alert: '组织人员分析 / 人才盘点 · 顶部 AI 洞察',
-  feedback_rewrite: '360 度评估 · 写改进建议时',
+  risk_alert: '人才盘点 · 顶部 AI 洞察',
   comment_polish: '绩效评估 · 写整体评语时',
   resume_parse: '简历管理 · 候选人详情的 AI 解析 Tab',
   salary_sanity_check: 'Offer 管理 / 调薪申请 · 填完薪资后检查'
@@ -203,9 +201,8 @@ const ABILITY_ENTRY: Record<AIAbilityCode, string> = {
 /** 业务入口路径 */
 const ABILITY_ROUTE: Record<AIAbilityCode, string> = {
   okr_check: '/perf/goal',
-  meeting_agenda: '/perf/feedback-one-on-one',
-  risk_alert: '/insight/organization',
-  feedback_rewrite: '/perf/review-360/x',
+  meeting_agenda: '/perf/one-on-one',
+  risk_alert: '/talent/review',
   comment_polish: '/perf/evaluation',
   resume_parse: '/recruit/resume',
   salary_sanity_check: '/recruit/offer'
@@ -255,8 +252,7 @@ const calling = ref(false)
 const needsTarget = computed(() => {
   return (
     demoAbility.value?.code === 'meeting_agenda' ||
-    demoAbility.value?.code === 'comment_polish' ||
-    demoAbility.value?.code === 'feedback_rewrite'
+    demoAbility.value?.code === 'comment_polish'
   )
 })
 

@@ -81,6 +81,11 @@ function buildMenuItemFromRoute(route: any, allRoutes: any[]): AppRouteRecord | 
     if (!r.path.startsWith(route.path + '/')) {
       return false
     }
+    // hide 路由不参与菜单结构（直接 URL 可访问，但不收进父 children）
+    // 这样 hide 路由的 path 可以自由设计，无需 /x 后缀来"逃出"父菜单
+    if (r.meta?.isHide) {
+      return false
+    }
     const relativePath = r.path.substring(route.path.length + 1)
     // 只取直接子路由（不包含更深层的路由）
     return !relativePath.includes('/')
