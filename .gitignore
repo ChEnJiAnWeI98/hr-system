@@ -18,9 +18,11 @@ dist-ssr
 # 项目用 pnpm,禁止 npm install 生成的 lock 文件入 git
 package-lock.json
 
-# 环境变量文件（含密钥/凭证，不入库；提交 .env.example 作为模板）
+# 环境变量文件
+# .env 含本地密钥（如锁屏加密密钥），不入库
+# .env.development 是本地开发配置（含 API 代理地址等），不入库；新人参考 .env.example
+# .env.production 不含密钥，仅 CI/CD 构建用，需要入库（否则 GitHub Pages 部署时拿不到 VITE_USE_MOCK 等关键配置）
 .env
 .env.development
-.env.production
 .env.local
 .env.*.local
